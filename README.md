@@ -17,7 +17,28 @@ Here's what works so far:
 * Visual test/demo page with some basic rendering examples.
 * DOM events and re-rendering a section seem fine.
 
-Take a look at `test.html` in this repo for examples.
+
+## Example
+
+Take a look at `test.html` in this repo for examples, but here's
+a quick glimpse:
+
+```
+<html><body>
+<script src="retrov.js"></script>
+<script>
+RV.render(
+    document.body,
+    ['div',
+        ['h1', 'Hello'],
+        ['p', 'Hello world, this is ',
+            ['em', 'RetroV'],
+            '!',
+        ]
+    ]
+);
+</script>
+```
 
 ## Why?
 
