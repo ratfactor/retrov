@@ -4,38 +4,38 @@
 (function RetroV(){
     var IS_CHILD = -42;
 
-    // TODO: vnode param isn't a great name because it could be
-    // a string, function, number.
-    //
-    function render(container, vnode, is_child){
+    function render(container, new_v, is_child, old_v){
+        // container - the DOM element into which we'll be rendering
 
         if(is_child !== IS_CHILD){
             // Temporary: Clear the root node every time we draw.
             container.replaceChildren();
+            // If it's a child, we have that part of old_v, otherwise get from DOM
+            old_v = container.old_vnode ? container.old_vnode : old_v;
+            container.old_vnode = new_v; // new will be old next time
         }
 
-        if(typeof vnode === 'number'){
-            vnode = vnode.toString();
+        if(typeof new_v === 'number'){
+            new_v = new_v.toString();
         }
-        if(typeof vnode === 'string'){
-            var me = document.createTextNode(vnode);
+        if(typeof new_v === 'string'){
+            var me = document.createTextNode(new_v);
             container.append(me);
             return;
         }
-
-        if(typeof vnode === 'function'){
-            render(container, vnode(), IS_CHILD);
+        if(typeof new_v === 'function'){
+            render(container, new_v(), IS_CHILD);
             return;
         }
 
         // Head of array ALWAYS the element type (e.g. "div")
-        var element = vnode.shift();
+        var element = new_v.shift();
 
         // If we made it this far, we're a VNode array
         //
         // Is the second thing a properties object?
-        var props = (typeof vnode[0] === 'object' && !Array.isArray(vnode[0]))
-            ? props = vnode.shift()
+        var props = (typeof new_v[0] === 'object' && !Array.isArray(new_v[0]))
+            ? props = new_v.shift()
             : props = [];
 
         // Add classes p.class1.class2:
@@ -63,7 +63,7 @@
 
         // everything else has to be children, recursively
         // render them too
-        vnode.forEach(function(c){
+        new_v.forEach(function(c){
             render(new_elem, c, IS_CHILD);
         });
 
