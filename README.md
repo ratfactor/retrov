@@ -24,24 +24,24 @@ I liked, but not this exact thing.
 
 ## Inspiration
 
-[https://github.com/wavesoft/dot-dom/blob/master/src/dotdom.js](.dom)
+[.dom](https://github.com/wavesoft/dot-dom/blob/master/src/dotdom.js) -
 Full hyperscript and DOM diff in 512 bytes! A direct inspiration. In fact, I
 was originally going to fork this and change it to suit my preferences until I
 decided to go in a radically different direction for VNode creation.
 
-[https://github.com/MithrilJS/mithril.js/blob/next/mithril.js](Mithril)
+[Mithril](https://github.com/MithrilJS/mithril.js/blob/next/mithril.js) -
 My old favorite, still getting updates. This is how I learned these practices
 and it's the standard by which I judge them.
 
-[https://github.com/lukejacksonn/ijk](ijk)
+[ijk](https://github.com/lukejacksonn/ijk) -
 DOM without the 'h()' function - pure JS data structures.
 I _think_ I'd seen this concept before, but maybe not. At any rate, this
 has heavily influenced RetroV. This library is for transforming data,
 not rendering. Super compact code!
 
-[https://github.com/hyperhype/hyperscript/blob/master/index.js](Hyperscript)
+[Hyperscript](https://github.com/hyperhype/hyperscript/blob/master/index.js) -
 Hyperscript renderer only, no VDom. Nice single-file JavaScript code!
 
-[https://github.com/WebReflection/udomdiff/blob/main/index.js](udomdiff)
+[udomdiff](https://github.com/WebReflection/udomdiff/blob/main/index.js) -
 (I'm not diffing at the time of this writing.)
 Just DOM diffing, wonderfully concise and _very_ readable code.
