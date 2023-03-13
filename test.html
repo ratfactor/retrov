@@ -41,27 +41,69 @@ function container(){
 }
 </script>
 
+<h2>Simple Rendering</h2>
+
+<h3>Single elements</h3>
+
 <script data-mirror>
-RV.render(container(), 'Hello world');
+RV.render(container(), 'Hello world!');
 </script>
 
 <script data-mirror>
-RV.render(container(), ['div.aqua', 'Hello world']);
+RV.render(container(), ['div', 'Hello world in a div tag!']);
 </script>
 
+<script data-mirror>
+RV.render(container(), ['div.aqua', 'Class shorthand.']);
+</script>
+
+<script data-mirror>
+RV.render(container(), ['.aqua', 'Class shorthand, implicit div.']);
+</script>
+
+<h3>Nested elements</h3>
 <script data-mirror>
 RV.render(container(),
-['div.aqua', 'Look at those',
-    ['div.orange', 'Large'],
-    ['div.orange', 'Shoes'],
+    ['.aqua', 'Look at those',
+        ['.orange', 'Large'],
+        ['.orange', 'Shoes'],
+    ]
+);
+</script>
+
+<p>Arrays of sibling elements are okay.  <i>(Note that they cannot start with a
+    string because that will look like an element's tag name.)</i></p>
+<script data-mirror>
+RV.render(container(), [
+    ['.aqua', 'Aunt', [
+         ['.orange', 'Cousin 1'],
+         ['.orange', 'Cousin 2'],
+    ]],
+    ['.aqua', 'Uncle', [
+        ['.orange', 'Cousin A'],
+        ['.orange', 'Cousin B'],
+        ['.orange', 'Cousin C'],
+    ]],
 ]);
 </script>
 
+<p>Numbers and arrays of numbers are okay.</p>
+<script data-mirror>
+RV.render(container(),
+    ['.aqua', 4, [5, 6, 7], 8, 9]
+);
+</script>
+
+
+<h2>Function 'components'</h2>
+
+<p>A function is treated as a callable 'component'.</p>
 <script data-mirror>
 function Foo(){ return ['.orange', 'function Foo()']; }
 RV.render(container(), Foo);
 </script>
 
+<p>Technique: pre-baking a closure with some data as a component:</p>
 <script data-mirror>
 function Bar(num){
     return function(){
@@ -75,6 +117,9 @@ function Bar(num){
 RV.render(container(), Bar(42));
 </script>
 
+<p>Note that passing a function to RetroV is not the same as calling
+a function and passing the <i>result</i>, which is also a useful thing
+to do:</p>
 <script data-mirror>
 function baz(num){
     return ['.orange',
@@ -86,6 +131,7 @@ function baz(num){
 RV.render(container(), baz(42));
 </script>
 
+<p>Components can be nested:
 <script data-mirror>
 function A(){ return ['.orange', 'A', B]; }
 function B(){ return ['.aqua',   'B', C]; }
@@ -96,6 +142,8 @@ function X(){ return ['.orange',  Y, 'X']; }
 RV.render(container(), ['div', A, X]);
 </script>
 
+<p>You can manage state how ever you like. Here, it's with
+a single global variable <code>goat_count</code>:
 <script data-mirror>
 var goat_container = container();
 var goat_count = 0;
@@ -119,6 +167,8 @@ function render_goats(){
 
 render_goats();
 </script>
+
+<p>TODO: test/demonstrate state here when I implement it</p>
 
 
 <script>

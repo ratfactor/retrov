@@ -28,6 +28,21 @@
             return;
         }
 
+        // At this point, we have to have an array
+        if(!Array.isArray(new_v)){
+            console.error("Oops, can't render: ", new_v);
+        }
+
+        // If first element is not a string, this array is not
+        // a VNode, it's actually a list.
+        if(typeof new_v[0] !== 'string'){
+            new_v.forEach(function(v){
+                render(container, v, IS_CHILD);
+            });
+
+            return;
+        }
+
         // Head of array ALWAYS the element type (e.g. "div")
         var element = new_v.shift();
 
