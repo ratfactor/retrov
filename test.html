@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>RetroV Demo/Test Page</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { background: #000; color: #FFF; font-size: 18px; }
+        a, a:hover, a:visited { color: #F0A; }
+        pre { padding: 1em; border: 1px solid orange; font-size: 0.9em; }
+        .container { padding: 1em; border: 1px solid #0cf;  }
+        pre,code { color: #F4F; }
+        .aqua {
+            background: #0CF; color: black; padding: 3px;
+            display: inline-block; margin: 5px;
+         }
+        .orange {
+            background: orange; color: black; padding: 3px;
+            display: inline-block; margin: 5px;
+        }
+        .bold { font-weight: bold; }
+        .bad-element {border: 1px red dashed;}
+    </style>
+    <script src="retrov.js"></script>
+</head>
+<body>
+
+<center> <!-- A center tag! Now that's retro! -->
+    <h1>RetroV Demo/Test Page</h1>
+    <img src="./retrov.svg" alt="RetroV 1970s colors svg logo">
+</center>
+
+<script>
+function container(){
+    var script = document.currentScript;
+    var output = document.createElement('div');
+    output.className = "container";
+    script.parentNode.insertBefore(output, script);
+    window.test_container = output;
+    return output;
+}
+</script>
+
+<script data-mirror>
+RV.render(container(), 'Hello world');
+</script>
+
+<script data-mirror>
+RV.render(container(), ['div.aqua', 'Hello world']);
+</script>
+
+<script data-mirror>
+RV.render(container(),
+['div.aqua', 'Look at those',
+    ['div.orange', 'Large'],
+    ['div.orange', 'Shoes'],
+]);
+</script>
+
+<script data-mirror>
+function Foo(){ return ['.orange', 'function Foo()']; }
+RV.render(container(), Foo);
+</script>
+
+<script data-mirror>
+function Bar(num){
+    return function(){
+        return ['.orange',
+            'function Bar(',
+            ['.aqua', num],
+            ')',
+        ];
+    };
+}
+RV.render(container(), Bar(42));
+</script>
+
+<script data-mirror>
+function baz(num){
+    return ['.orange',
+        'baz(',
+        ['.aqua', num],
+        ')',
+    ];
+}
+RV.render(container(), baz(42));
+</script>
+
+<script data-mirror>
+function A(){ return ['.orange', 'A', B]; }
+function B(){ return ['.aqua',   'B', C]; }
+function C(){ return ['.orange', 'C']; }
+function Z(){ return ['.orange', 'Z']; }
+function Y(){ return ['.aqua',    Z, 'Y']; }
+function X(){ return ['.orange',  Y, 'X']; }
+RV.render(container(), ['div', A, X]);
+</script>
+
+<script data-mirror>
+var goat_container = container();
+var goat_count = 0;
+
+function render_goats(){
+    RV.render(goat_container,
+        ['div.aqua',
+            ['button',
+                {
+                    onclick: function(){
+                        goat_count++;
+                        render_goats();
+                    }
+                },
+                "Goat",
+            ],
+            " Goat count: ",
+            ['div.orange', goat_count],
+    ]);
+}
+
+render_goats();
+</script>
+
+
+<script>
+// This helper displays the source of script tags:
+
+/*/ The Mirror of Galadriel 2
+ *  Copyright 2023 Dave Gauer (ratfactor.com)
+ *  Released under the MIT License.
+/*/
+document.addEventListener("DOMContentLoaded", function(e) {
+    var scripts = document.querySelectorAll('script[data-mirror]');
+    if(scripts.length<1){
+        console.log("Galadriel's Mirror 2: No scripts with data-mirror found.");
+    }
+    scripts.forEach(function(script){
+        // remove initial blank line from script (if any)
+        var text = script.innerHTML.replace(/^\r?\n/, '');
+        // create <pre> to mirror text contents
+        var mirror = document.createElement('pre');
+        mirror.innerHTML = text;
+        script.parentNode.insertBefore(mirror, script);
+    });
+});
+</script>
+</body>
+</html>
