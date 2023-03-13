@@ -47,12 +47,12 @@ I liked, but not this exact thing.
 
 ## Inspiration
 
-[.dom](https://github.com/wavesoft/dot-dom/blob/master/src/dotdom.js) -
+[.dom](https://github.com/wavesoft/dot-dom/) -
 Full hyperscript and DOM diff in 512 bytes! A direct inspiration. In fact, I
 was originally going to fork this and change it to suit my preferences until I
 decided to go in a radically different direction for VNode creation.
 
-[Mithril](https://github.com/MithrilJS/mithril.js/blob/next/mithril.js) -
+[Mithril](https://github.com/MithrilJS/mithril.js/) -
 My old favorite, still getting updates. This is how I learned these practices
 and it's the standard by which I judge them.
 
@@ -62,9 +62,9 @@ I _think_ I'd seen this concept before, but maybe not. At any rate, this
 has heavily influenced RetroV. This library is for transforming data,
 not rendering. Super compact code!
 
-[Hyperscript](https://github.com/hyperhype/hyperscript/blob/master/index.js) -
+[Hyperscript](https://github.com/hyperhype/hyperscript/) -
 Hyperscript renderer only, no VDom. Nice single-file JavaScript code!
 
-[udomdiff](https://github.com/WebReflection/udomdiff/blob/main/index.js) -
+[udomdiff](https://github.com/WebReflection/udomdiff/) -
 (I'm not diffing at the time of this writing.)
 Just DOM diffing, wonderfully concise and _very_ readable code.
