@@ -20,7 +20,7 @@ http://ratfactor.com/retrov/
 
 ## Example (a whole web page!)
 
-Here's a quick a quick glimpse:
+Here's a quick glimpse:
 
 ```
 <html><body>
