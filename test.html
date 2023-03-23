@@ -1,197 +1,721 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>RetroV Demo/Test Page</title>
+    <title>RetroV Test Suite</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background: #000; color: #FFF; font-size: 18px; }
-        a, a:hover, a:visited { color: #F0A; }
-        pre { padding: 1em; border: 1px solid orange; font-size: 0.9em; }
-        .container { padding: 1em; border: 1px solid #0cf;  }
-        pre,code { color: #F4F; }
-        .aqua {
-            background: #0CF; color: black; padding: 3px;
-            display: inline-block; margin: 5px;
-         }
-        .orange {
-            background: orange; color: black; padding: 3px;
-            display: inline-block; margin: 5px;
+        body {
+            background: #000; color: #FFF;
+            font-size: 18px;
+            max-width: 700px;
+            margin: auto;
         }
-        .bold { font-weight: bold; }
-        .bad-element {border: 1px red dashed;}
+        #test_container { margin-top: 1em; }
+        .result-box {
+            display: inline-block;
+            padding: 4px;
+            border: 1px solid silver;
+            margin: 2px;
+        }
+        .assert-box {
+            display: inline-block;
+            padding: 4px;
+            color: #000;
+        }
+        .assert-box + .assert-box {
+            margin-left: 4px; /* space between assert boxes */
+        }
+        .good { background: #af5; }
+        .bad { background: red; }
+
+        .tooltip {
+            visibility: hidden;
+            border: 1px solid white;
+            background: black;
+            position: absolute;
+            margin: -30px 20px;
+            padding: 5px;
+        }
+
+        /* click or hover shows tooltip with test description */
+        .result-box:hover .tooltip, .result-box:focus .tooltip {
+            visibility: visible;
+        }
+        .result-box:focus {
+            background: white;
+        }
+
+        .fatal {
+            background: red;
+            margin: 1em;
+            padding: 2em;
+        }
     </style>
     <script src="retrov.js"></script>
 </head>
 <body>
 
-<center> <!-- A center tag! Now that's retro! -->
-    <h1>RetroV Demo/Test Page</h1>
-    <img src="./retrov.svg" alt="RetroV 1970s colors svg logo">
-</center>
+<h1>RetroV Test Suite</h1>
+
+<p>If all goes well, you should see a bunch of green boxes and the console will
+be clear of errors. Roll over (or click on) a test box to see a description.
+</p>
+
+<div id="test_output"></div>
+<div id="test_container"></div>
 
 <script>
-function container(){
-    var script = document.currentScript;
-    var output = document.createElement('div');
-    output.className = "container";
-    script.parentNode.insertBefore(output, script);
-    window.test_container = output;
-    return output;
+// Hint:
+// If an assertion about the contents of the container fails,
+// a fast way to see what was rendered is to put this after
+// the render:
+//
+//   output.append(container.innerHTML);
+//
+
+var output = document.getElementById('test_output');
+var container = document.getElementById('test_container');
+
+var current_test = "not started";
+var asserts = [];
+
+var test_count = 0;
+var assert_count = 0;
+
+window.onerror = function(message, url, line_num){
+    var fatal_box = document.createElement('div');
+    fatal_box.innerHTML = "Fatal error while running: <b>'"
+        + current_test +
+        "'</b> See console for details.";
+    fatal_box.className = 'fatal';
+    output.append(fatal_box);
+
+    // okay, we're done, false doesn't stop the error from getting
+    // to the default handler (browser)
+    return false;
 }
-</script>
 
-<h2>Simple Rendering</h2>
+function start_test(description, v){
+    // clear stuff for new test
+    container.replaceChildren();
+    delete container.rv_old_v;
+    current_test = description;
+    asserts = [];
 
-<h3>Single elements</h3>
+    // now render the first v tree
+    RV.render(container, v);
+}
+function add_render(v){
+    RV.render(container, v);
+}
+function end_test(){
+    var box = document.createElement('div');
+    box.className = 'result-box';
+    box.tabIndex = test_count+1;
 
-<script data-mirror>
-RV.render(container(), 'Hello world!');
-</script>
+    var tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.innerHTML = current_test;
+    box.append(tooltip);
 
-<script data-mirror>
-RV.render(container(), ['div', 'Hello world in a div tag!']);
-</script>
+    // loop over assert results
+    asserts.forEach(function(ar, i){
+        var result = document.createElement('div');
+        result.className = "assert-box " + (ar ? "good" : "bad");
+        result.innerHTML = i+1;
+        box.append(result);
+    });
+    
+    output.append(box);
 
-<script data-mirror>
-RV.render(container(), ['div.aqua', 'Class shorthand.']);
-</script>
+    test_count++;
+}
+function assert(maybe){
+    asserts.push(maybe);
 
-<script data-mirror>
-RV.render(container(), ['.aqua', 'Class shorthand, implicit div.']);
-</script>
+    if(!maybe){
+        console.error("Failed:",current_test," assert #",asserts.length);
+    }
 
-<h3>Nested elements</h3>
-<script data-mirror>
-RV.render(container(),
-    ['.aqua', 'Look at those',
-        ['.orange', 'Large'],
-        ['.orange', 'Shoes'],
+    assert_count++;
+}
+
+function $(query){
+    return container.querySelector(query);
+}
+
+
+/* =======================================================================
+ *                              The Tests
+ * =======================================================================
+ */
+
+// First, tests for rendering in increasing complexity.
+// Of particular focus are arrays because they're surprisingly challenging:
+//   * Nested arrays are always flattened
+//   * Node children are always completely flattened
+//     (items in arrays in a node child list become just part of the list)
+//   * Arrays that are *not* node children remain arrays
+//   * Sibling elements, in general are tricky because we have to
+//     compare them by sequential position
+//   * Especially deleting them - we have to delete in reverse or the DOM
+//     indexing will not line up (deleting #2 means #3 is now #2!)
+//
+
+start_test("Text node", 'foo');
+assert(container.innerHTML == 'foo')
+end_test();
+
+start_test("Empty array should make comment", []);
+assert(container.innerHTML.includes('RV:empty-array'));
+end_test();
+
+start_test("Null should make comment", null);
+assert(container.innerHTML.includes('RV:null-placeholder'));
+end_test();
+
+start_test("Render a tag", ['div']);
+assert($('div'));
+end_test();
+
+start_test("Render a tag with a text node", ['div', 'foo']);
+assert($('div'));
+assert($('div').innerHTML == 'foo');
+end_test();
+
+start_test("Render a tag with two text nodes",
+    ['div', 'foo', 'bar']
+);
+assert($('div'));
+assert($('div').innerHTML == 'foobar');
+end_test();
+
+start_test("Tag with css class",
+    ['div', {className:'x'}]
+);
+assert($('div.x'));
+end_test();
+
+start_test("Tag with css class shorthand",
+    ['span.x']
+);
+assert($('span.x'));
+end_test();
+
+start_test("Implicit div with css class shorthand",
+    ['.x']
+);
+assert($('div.x'));
+end_test();
+
+start_test("Implicit div with three css classes shorthand",
+    ['.x.y.z']
+);
+assert($('div.x.y.z'));
+end_test();
+
+start_test("Implicit div, one shorthand, two regular classes",
+    ['.x', {className:'y z'}]
+);
+assert($('div.x.y.z'));
+end_test();
+
+start_test("Render a tag with a data- property and a text node",
+    ['div', {title:'world'}, 'hello']
+);
+assert($('[title="world"]'));
+assert($('div').innerHTML == 'hello');
+end_test();
+
+start_test("Two tags in an array",
+    [
+        ['span.a'],
+        ['span.b']
     ]
 );
-</script>
+assert($('span.a'));
+assert($('span.b'));
+end_test();
 
-<p>Arrays of sibling elements are okay.  <i>(Note that they cannot start with a
-    string because that will look like an element's tag name.)</i></p>
-<script data-mirror>
-RV.render(container(), [
-    ['.aqua', 'Aunt', [
-         ['.orange', 'Cousin 1'],
-         ['.orange', 'Cousin 2'],
-    ]],
-    ['.aqua', 'Uncle', [
-        ['.orange', 'Cousin A'],
-        ['.orange', 'Cousin B'],
-        ['.orange', 'Cousin C'],
-    ]],
-]);
-</script>
-
-<p>Numbers and arrays of numbers are okay.</p>
-<script data-mirror>
-RV.render(container(),
-    ['.aqua', 4, [5, 6, 7], 8, 9]
+start_test("Tag with two child tags",
+    ['div',
+        ['span.a'],
+        ['span.b']
+    ]
 );
-</script>
+assert($('div > span.a'));
+assert($('div > span.b'));
+end_test();
 
+start_test("Tag with array of tags (nested)",
+    ['div',
+        [
+            ['span.a'],
+            ['span.b']
+        ]
+    ]
+);
+assert($('div > span.a'));
+assert($('div > span.b'));
+end_test();
 
-<h2>Function 'components'</h2>
+start_test("Tag with four children in two symetrical arrays (nested)",
+    ['div',
+        [
+            ['span.a'],
+            ['span.b']
+        ],
+        [
+            ['span.c'],
+            ['span.d']
+        ],
+    ]
+);
+assert($('div > span.a'));
+assert($('div > span.b'));
+assert($('div > span.c'));
+assert($('div > span.d'));
+end_test();
 
-<p>A function is treated as a callable 'component'.</p>
-<script data-mirror>
-function Foo(){ return ['.orange', 'function Foo()']; }
-RV.render(container(), Foo);
-</script>
-
-<p>Technique: pre-baking a closure with some data as a component:</p>
-<script data-mirror>
-function Bar(num){
-    return function(){
-        return ['.orange',
-            'function Bar(',
-            ['.aqua', num],
-            ')',
-        ];
-    };
-}
-RV.render(container(), Bar(42));
-</script>
-
-<p>Note that passing a function to RetroV is not the same as calling
-a function and passing the <i>result</i>, which is also a useful thing
-to do:</p>
-<script data-mirror>
-function baz(num){
-    return ['.orange',
-        'baz(',
-        ['.aqua', num],
-        ')',
-    ];
-}
-RV.render(container(), baz(42));
-</script>
-
-<p>Components can be nested:
-<script data-mirror>
-function A(){ return ['.orange', 'A', B]; }
-function B(){ return ['.aqua',   'B', C]; }
-function C(){ return ['.orange', 'C']; }
-function Z(){ return ['.orange', 'Z']; }
-function Y(){ return ['.aqua',    Z, 'Y']; }
-function X(){ return ['.orange',  Y, 'X']; }
-RV.render(container(), ['div', A, X]);
-</script>
-
-<p>You can manage state how ever you like. Here, it's with
-a single global variable <code>goat_count</code>:
-<script data-mirror>
-var goat_container = container();
-var goat_count = 0;
-
-function render_goats(){
-    RV.render(goat_container,
-        ['div.aqua',
-            ['button',
-                {
-                    onclick: function(){
-                        goat_count++;
-                        render_goats();
-                    }
-                },
-                "Goat",
+start_test("Tag with four children in asymetric arrays (nested)",
+    ['div',
+        [
+            ['span.a'],
+            [
+                ['span.b'],
+                ['span.c'],
             ],
-            " Goat count: ",
-            ['div.orange', goat_count],
-    ]);
-}
+            ['span.d'],
+        ]
+    ]
+);
+assert($('div > span.a'));
+assert($('div > span.b'));
+assert($('div > span.c'));
+assert($('div > span.d'));
+end_test();
 
-render_goats();
-</script>
 
-<p>TODO: test/demonstrate state here when I implement it</p>
+start_test("Tree: 5 children, two grandchildren, weird array nesting",
+    ['div.grandpa',
+        [
+            ['span.a'], // child 1
+            [
+                ['span.b'], // child 2
+                ['span.c'], // child 3
+            ],
+            ['span.d', // child 4
+                [
+                    ['span.e', 'f', 'g'],
+                    ['span.h', 'i', 'j'],
+                ],
+            ],
+            [
+                [
+                    [
+                        [
+                            ['span.x', 'y', 'z'], // child 5
+                        ],
+                    ],
+                ],
+            ],
+        ]
+    ]
+);
+assert($('div.grandpa > span.a'));
+assert($('div.grandpa > span.b'));
+assert($('div.grandpa > span.c'));
+assert($('div.grandpa > span.d'));
+assert($('div.grandpa > span.d > span.e'));
+assert($('div.grandpa > span.d > span.e').innerHTML == 'fg');
+assert($('div.grandpa > span.d > span.h').innerHTML == 'ij');
+assert($('div.grandpa > span.x'));
+assert($('div.grandpa > span.x').innerHTML == 'yz');
+end_test();
 
 
-<script>
-// This helper displays the source of script tags:
+// =======================================================================
+// Tests for diffing
 
-/*/ The Mirror of Galadriel 2
- *  Copyright 2023 Dave Gauer (ratfactor.com)
- *  Released under the MIT License.
-/*/
-document.addEventListener("DOMContentLoaded", function(e) {
-    var scripts = document.querySelectorAll('script[data-mirror]');
-    if(scripts.length<1){
-        console.log("Galadriel's Mirror 2: No scripts with data-mirror found.");
-    }
-    scripts.forEach(function(script){
-        // remove initial blank line from script (if any)
-        var text = script.innerHTML.replace(/^\r?\n/, '');
-        // create <pre> to mirror text contents
-        var mirror = document.createElement('pre');
-        mirror.innerHTML = text;
-        script.parentNode.insertBefore(mirror, script);
-    });
-});
+before = 'hello';
+after = 'world';
+start_test("Simple text change", before);
+assert(container.innerHTML == 'hello')
+add_render(after);
+assert(container.innerHTML == 'world')
+end_test();
+
+before = ['div.w',['div.x'],null,['div.z']];
+after  = ['div.w',['div.x'],['div.y'],['div.z']];
+start_test("Null child placeholder", before);
+assert($('div.w > div.x'));
+assert($('div.w > div.z'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+end_test();
+
+before = ['div.w',[['div.x'],null,['div.z']]];
+after  = ['div.w',[['div.x'],['div.y'],['div.z']]];
+start_test("Null placeholder in array child", before);
+assert($('div.w > div.x'));
+assert($('div.w > div.z'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+end_test();
+
+before = ['div.w',['div.x'],[],['div.z']];
+after  = ['div.w',['div.x'],['div.y'],['div.z']];
+start_test("Div replaces empty array", before);
+assert($('div.w > div.x'));
+assert($('div.w > div.z'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+end_test();
+
+before = [];
+after  = [['div.x'],['div.y'],['div.z']];
+start_test("Multiple array items added, then removed", before);
+// not much to assert here, container starts empty
+add_render(after);
+assert($('div.x'));
+assert($('div.y'));
+assert($('div.z'));
+add_render(before);
+assert(!$('div.x')); // not
+assert(!$('div.y')); // not
+assert(!$('div.z')); // not
+end_test();
+
+before = ['div.w'];
+after  = ['div.w',['div.x'],['div.y'],['div.z']];
+start_test("Multiple children added then removed", before);
+assert($('div.w'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+add_render(before);
+assert(!$('div.w > div.x')); // not
+assert(!$('div.w > div.y')); // not
+assert(!$('div.w > div.z')); // not
+end_test();
+
+before = ['div.w',['div.x']];
+after  = ['div.w',['div.x'],['div.y'],['div.z']];
+start_test("Multiple children added (to existing) then removed", before);
+assert($('div.w > div.x'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+add_render(before);
+assert($('div.w > div.x'));
+assert(!$('div.w > div.y')); // not
+assert(!$('div.w > div.z')); // not
+end_test();
+
+before = ['div.w', []];
+after  = ['div.w', [['div.x'],['div.y'],['div.z']]];
+start_test("Multiple child array items added, then removed", before);
+assert($('div.w'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+add_render(before);
+assert(!$('div.w > div.x')); // not
+assert(!$('div.w > div.y')); // not
+assert(!$('div.w > div.z')); // not
+end_test();
+
+before = ['div.w',['div.x'],['div.y'],['div.z']];
+after  = ['div.w',['div.x'],[],['div.z']];
+start_test("Empty array replaces div and back again", before);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+add_render(after);
+assert($('div.w > div.x'));
+assert(!$('div.w > div.y')); // not
+assert($('div.w > div.z'));
+add_render(before);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+end_test();
+
+before = ['div.w',['div.x'],[],['div.z']];
+after  = ['div.w',['div.x'],[['div.a'],['div.b']],['div.z']];
+start_test("Empty array filled, then emptied again.", before);
+assert($('div.w > div.x'));
+assert($('div.w > div.z'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.a'));
+assert($('div.w > div.b'));
+assert($('div.w > div.z'));
+add_render(before);
+assert($('div.w > div.x'));
+assert(!$('div.w > div.a')); // not
+assert(!$('div.w > div.b')); // not
+assert($('div.w > div.z'));
+end_test();
+
+before= ['div.a', 'A'];
+after = ['div.b', 'B'];
+start_test("Change class and text child, and back again", before);
+assert($('div.a').innerHTML == 'A');
+add_render(after);
+assert(!$('div.a')); // not
+assert($('div.b').innerHTML == 'B');
+add_render(before);
+assert(!$('div.b')); // not
+assert($('div.a').innerHTML == 'A');
+end_test();
+
+before= ['div.a', 'A'];
+after = ['span.b', 'B'];
+start_test("Change tag, class, and text child, and back again", before);
+assert($('div.a').innerHTML == 'A');
+add_render(after);
+assert(!$('div.a')); // not
+assert($('span.b').innerHTML == 'B');
+add_render(before);
+assert(!$('span.b')); // not
+assert($('div.a').innerHTML == 'A');
+end_test();
+
+before = ['form',
+    ['p', 'Make a character!'],
+    ['label', 'Character Name:',
+        ['input', {type:'text',placeholder:'Your Name Here'}]
+    ],
+    ['p', 'Are you a goose?'],
+    ['label', 'Yes',
+        ['input', {type:'radio',name:'honk',value:'yes'}]
+    ],
+    ['label', 'No',
+        ['input', {type:'radio',name:'honk',value:'no'}]
+    ],
+    ['button', 'Create Character'],
+];
+start_test("Completely change, empty, change, back again.", before);
+assert($('form'));
+assert($('form').childNodes.length == 6);
+assert($('form > p'));
+assert($('form > label'));
+assert($('form > label > input[type="text"'));
+assert($('form > label > input[value="yes"]'));
+assert($('form > label > input[value="no"]'));
+assert($('form > button').innerHTML == 'Create Character');
+add_render([]);
+assert(!$('form')); // not
+assert(container.innerHTML.includes('RV:empty-array'));
+add_render(['.nothing', [], [], null, []]);
+assert($('.nothing'));
+assert($('.nothing').innerHTML.includes('RV:null-placeholder'));
+add_render(['.something', ['span','hi'], [], ['span','bye'], []]);
+assert($('.something'));
+assert($('.something > span'));
+add_render(null);
+assert(container.innerHTML.includes('RV:null-placeholder'));
+add_render(['form', 'Write an essay:', ['textarea']]);
+assert($('form > textarea'));
+add_render(before);
+// exact repeat of the assertions above
+assert($('form'));
+assert($('form').childNodes.length == 6);
+assert($('form > p'));
+assert($('form > label'));
+assert($('form > label > input[type="text"'));
+assert($('form > label > input[value="yes"]'));
+assert($('form > label > input[value="no"]'));
+assert($('form > button').innerHTML == 'Create Character');
+end_test();
+
+
+// =======================================================================
+// Tests with "false means 'no change'"
+
+before= ['div.a', 'A'];
+after = false;
+start_test("No render with false, then re-render", before);
+assert($('div.a').innerHTML == 'A');
+add_render(after);
+assert($('div.a').innerHTML == 'A');
+add_render(before);
+assert($('div.a').innerHTML == 'A');
+end_test();
+
+before= ['div.a', ['.cb'], ['.cc']];
+after = ['div.a', false, false];
+start_test("No render with false (children) twice, then re-render", before);
+assert($('div.a > div.cb'));
+assert($('div.a > div.cc'));
+add_render(after);
+assert($('div.a > div.cb'));
+assert($('div.a > div.cc'));
+add_render(after);
+assert($('div.a > div.cb'));
+assert($('div.a > div.cc'));
+add_render(before);
+assert($('div.a > div.cb'));
+assert($('div.a > div.cc'));
+end_test();
+
+before= ['div.a', ['.cb'], ['.cc']];
+after = ['div.a', false, false];
+after2 = ['div.a', ['span.cb'], ['span.cc']];
+start_test("No render with false (children), then different", before);
+assert($('div.a > div.cb'));
+assert($('div.a > div.cc'));
+add_render(after);
+assert($('div.a > div.cb'));
+assert($('div.a > div.cc'));
+add_render(after2);
+assert($('div.a > span.cb'));
+assert($('div.a > span.cc'));
+add_render(before);
+assert($('div.a > div.cb'));
+assert($('div.a > div.cc'));
+end_test();
+
+before = [['.a'], ['.b'], ['.c']];
+after = [false, ['.b'], false];
+after2 = false;
+start_test("No render with false (array)", before);
+assert($('div.a'));
+assert($('div.b'));
+assert($('div.c'));
+add_render(after);
+assert($('div.a'));
+assert($('div.b'));
+assert($('div.c'));
+add_render(after2);
+assert($('div.a'));
+assert($('div.b'));
+assert($('div.c'));
+add_render(before);
+assert($('div.a'));
+assert($('div.b'));
+assert($('div.c'));
+end_test();
+
+before = ['.foo'];
+start_test("False, null, arrays, elements switch-a-roo", before);
+assert($('div.foo'));
+add_render(false);
+assert($('div.foo'));
+add_render(null);
+assert(container.innerHTML.includes('RV:null-placeholder'));
+add_render(false);
+assert(container.innerHTML.includes('RV:null-placeholder'));
+add_render(before);
+assert($('div.foo'));
+add_render(false);
+add_render([]);
+add_render(null);
+add_render(false);
+add_render([]);
+add_render(false); // just seeing if it will blow up
+add_render(before);
+assert($('div.foo'));
+end_test();
+
+before = false;
+start_test("False placeholder", before);
+assert(container.innerHTML.includes('RV:false-placeholder'));
+add_render(['.foo']);
+assert($('div.foo'));
+end_test();
+
+before = ['.foo', false];
+after = ['.foo', ['.bar']];
+start_test("False placeholder child", before);
+assert($('.foo').innerHTML.includes('RV:false-placeholder'));
+add_render(after);
+assert($('div.foo > .bar'));
+add_render(before);
+assert($('div.foo > .bar'));
+end_test();
+
+before = ['.foo', ['.bar', false, ['.baz']]];
+after  = ['.foo', ['.bar', ['.bonk'], ['.baz']]];
+after2 = ['.foo', false];
+after3 = false;
+start_test("False placeholder grandchild", before);
+assert($('div.foo > .bar > .baz'));
+assert($('.foo > .bar').innerHTML.includes('RV:false-placeholder'));
+add_render(after);
+assert($('div.foo > .bar'));
+assert($('div.foo > .bar > .baz'));
+assert($('div.foo > .bar > .bonk'));
+add_render(after2);
+assert($('div.foo > .bar'));
+assert($('div.foo > .bar > .baz'));
+assert($('div.foo > .bar > .bonk'));
+add_render(after3);
+assert($('div.foo > .bar'));
+assert($('div.foo > .bar > .baz'));
+assert($('div.foo > .bar > .bonk'));
+end_test();
+
+// =======================================================================
+// Styles
+
+before = ['div', {
+            style: {
+                color: 'red',
+                fontSize: '2em',
+            },
+         },
+         ['span', { // child of div
+             style: {
+                 backgroundColor: 'green',
+             }
+         }],
+];
+after  = ['div', {
+            style: {
+                color: 'red',
+                fontSize: '3em',
+            },
+         },
+         ['span', { // child of div
+             style: {
+                 textDecoration: 'underline',
+             }
+         }],
+];
+start_test("Set and change styles", before);
+assert($('div').style.color === 'red');
+assert($('div').style.fontSize === '2em');
+assert($('div > span').style.backgroundColor === 'green');
+add_render(after);
+assert($('div').style.color === 'red');
+assert($('div').style.fontSize === '3em');
+assert($('div > span').style.backgroundColor === 'green');
+assert($('div > span').style.textDecoration === 'underline');
+add_render(before);
+assert($('div').style.color === 'red');
+assert($('div').style.fontSize === '2em');
+assert($('div > span').style.backgroundColor === 'green');
+end_test();
+
+// =======================================================================
+// All done, print simple count summary
+
+container.replaceChildren(
+  '' + test_count + ' tests and ' + assert_count + ' assertions done!'
+);
+
 </script>
 </body>
 </html>

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>RetroV Demo and Tutorial</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background: #000; color: #FFF;
+            font-size: 18px;
+            max-width: 700px;
+            margin: auto;
+        }
+        a, a:hover, a:visited { color: #F0A; }
+        pre { padding: 1em; font-size: 0.8em; margin-left: 2em; }
+        pre,code { color: #F4F; }
+        h2 { color: #acff47; }
+        h3 { color: #47ffdd; margin-top: 3em; }
+        strong { color: #47ffdd; }
+        .container {
+            padding: 1em;
+            border: 1px solid #0cf;
+            margin-top: 10px;
+        }
+        .aqua {
+            background: #0CF; color: black; padding: 3px;
+            display: inline-block; margin: 5px;
+            animation: 0.5s attention;
+            position: relative; /* for attention anim */
+            border: 1px solid #000;
+         }
+        .orange {
+            background: orange; color: black; padding: 3px;
+            display: inline-block; margin: 5px;
+            animation: 0.5s attention;
+            position: relative; /* for attention anim */
+            border: 1px solid #000;
+        }
+        @keyframes attention { from { top: -5px; } to { top: 0; } }
+        .bold { font-weight: bold; }
+        button.toggle_state {
+            display: block;
+            background: #db01db;
+            margin: 10px;
+            color: white; 
+            font-weight: bold;
+            border-style: none;
+            border-radius: 8px;
+            padding: 5px 8px;
+            float: right;
+        }
+        button.toggle_state:hover { background: #ff4aff; }
+    </style>
+    <script src="retrov.js"></script>
+</head>
+<body>
+
+<center> <!-- A center tag! Now that's retro! -->
+    <h1>RetroV demo and tutorial</h1>
+    <img src="./retrov.svg" alt="RetroV 1970s colors svg logo">
+</center>
+
+<script>
+function make_container(){
+    var script = document.currentScript;
+    var output = document.createElement('div');
+    output.className = "container";
+    script.after(output);
+//    script.parentNode.insertBefore(output, script);
+    window.test_container = output;
+    return output;
+}
+
+function toggle_state(c){
+    var after = false;
+    var states = c.states;
+
+    var btn = document.createElement('button');
+    btn.innerHTML = 'Toggle'; // "2" meaning "second"
+    btn.className = 'toggle_state';
+    btn.addEventListener('click', function(){
+        var s = after ? 'before' : 'after';
+        after = !after; //toggle
+        console.log("togglin' to ",s,states[s]);
+        RV.render(c, states[s]);
+    });
+    c.before(btn);
+//    c.append(btn);
+}
+
+var c; // re-used a bunch to hold example containers
+</script>
+
+<h2>Including ("installing")</h2>
+
+<p>You can add the RetroV library to a page
+with nothing more than a script tag like so:
+
+<pre>
+&lt;script src="retrov.js"&gt;&lt;/script&gt;
+</pre>
+
+<p>This exposes a global <code>RV</code> object with a <code>render()</code>
+method. The first render parameter is a target DOM element to render into.
+The second parameter is an element or tree of "VNode" data to be rendered.<p>
+<pre>
+RV.render(document.body, 'Hello world.");
+
+RV.render(document.getElementById('my_panel'), ['div', ...]);
+</pre>
+
+<p>RetroV can be used to render HTML from JavaScript once as a
+"template" engine. Or it can be used to create interactive UIs with
+functional components.</p>
+<p>The rest of this page is a series of increasingly interesting examples
+that run live in the browser.</p>
+
+<h3>Note</h3>
+<p>This page makes heavy use of two utility functions. Both are part of this
+page and have <em>nothing</em> to do with RetroV itself:
+<ul>
+    <li><code>make_container()</code> creates a &lt;div&gt; and returns a
+        reference to it.</li>
+    <li><code>toggle_state()</code> creates a <strong>Toggle</strong> button
+        which renders "before" and "after" VNodes.</li>
+</ul>
+</p>
+
+<p>With that out of the way, let's see some examples!</p>
+
+<h2>Simple rendering</h2>
+
+
+<h3>Text</h3>
+<p>Strings and numbers are rendered as text nodes.</p>
+<script data-mirror>
+c = make_container();
+
+RV.render(c, 'Hello world.');
+</script>
+
+<h3>HTML nodes</h3>
+<p>In RetroV, an HTML tag is represented by an array with the tag name
+as the first element of the array. Here is a paragraph tag with a
+text node child:</p>
+<script data-mirror>
+c = make_container();
+
+RV.render(c, ['p', 'Hello paragraph.']);
+</script>
+
+<h3>Arrays of siblings</h3>
+<p>You can supply more than one element in an array. (<strong>Note:</strong>
+you cannot have an array of strings because that would be indistinguishable
+from an HTML tag.)</p>
+<script data-mirror>
+c = make_container();
+
+RV.render(c, [
+    ['p', 'Paragraph one.'],
+    ['p', 'Paragraph two.'],
+]);
+</script>
+
+<h3>Properties</h3>
+<p>HTML tags can have a properties object as the second item.  Let's make this
+paragraph tag more interesting by assigning a class via the
+<code>className</code> property. After this object, any children follow
+as usual.</p>
+<script data-mirror>
+c = make_container();
+
+RV.render(c, ['p', {className: 'aqua'}, 'Classy paragraph.']);
+</script>
+
+<h3>Class shorthand</h3>
+<p>Because it's so common to apply a class name (or two) to
+a tag, you can also use the "CSS selector" style shorthand
+to apply one or more classes.</p>
+<p>In addition, just a class name without a tag creates an
+implicit &lt;div&gt;.</p>
+<script data-mirror>
+c = make_container();
+
+RV.render(c, [
+    ['span.aqua', 'aqua'],
+    ['span.orange', 'orange'],
+    ['span.orange.bold', 'orange bold'],
+    ['.aqua', 'implicit div tag'],
+]);
+</script>
+
+<h3>The style property</h3>
+
+<p>Though <em>excessive</em> use of inline styles can get messy real fast,
+sometimes they're unavoidable.</p>
+
+<p>RetroV accepts a <code>style</code> property object containing the styles
+you wish to set using standard JavaScript names (in which CSS properties
+with hyphens are replaced with camelCase).</p>
+
+<script data-mirror>
+c = make_container();
+
+RV.render(c,
+    ['div', {
+        style: {
+            color: 'orange',
+            textShadow: '1px 1px #000, 3px 3px #0cf',
+            fontSize: '2em',
+        }},
+    "Fancy!"
+    ]
+);
+</script>
+
+
+<h3>Nested HTML nodes</h3>
+<p>So far, we've seen tags with just a single text node child.
+But arbitrary HTML structures can be nested as children.</p>
+<script data-mirror>
+c = make_container();
+
+RV.render(c,
+    ['.aqua',
+        'Enjoy',
+        ['.orange',
+            'those',
+            ['.aqua', 'antique'],
+        ],
+        ['.orange',
+            ['.aqua.bold', 'spicy'],
+            ['.aqua', 'rats'],
+        ],
+    ]
+);
+</script>
+
+
+<h2>Dynamic updates</h2>
+
+<p>When you render more than once to the same DOM element, RetroV will check
+for changes in the "virtual DOM" VNodes from the previous rendering and apply
+any differences to the real DOM.</p>
+
+<h3>Changing an HTML node property</h3>
+
+<p>Here, the <code>className</code> (class) property is being updated.
+Click the <strong>Toggle</strong> button to see the change applied.
+Click it again to revert to the original state.</p>
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: ['div', {className:'aqua'}, 'Hello world'],
+    after:  ['div', {className:'orange'}, 'Hello world'],
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+<h3>Same, but with class shorthand</h3>
+
+<p>Change class property via shorthand and implicit div tags.</p>
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: ['.aqua','Hello again'],
+    after:  ['.orange','Hello again'],
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+
+<h3>Adding an item to a list</h3>
+
+<p>In the example below, a third &lt;div&gt; element is added to the
+list. Clicking <strong>Toggle</strong> a second time removes the
+element and so on.</p>
+<p>Note how the new element "jumps" when it is added. This is done with
+a CSS animation when the element is added to the DOM.
+By watching which elements jump, you can see which nodes RetroV is 
+adding/replacing and which ones are being left alone.
+(Property changes and text node changes won't make an element
+jump, though. Only elements being added to the DOM.)</p>
+
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: [['.aqua','A'],['.orange','B']],
+    after:  [['.aqua','A'],['.orange','B'],['.aqua','C']],
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+
+<h3>Changing a sibling element in a list</h3>
+
+<p>Since the middle item is being changed from an (implicit) div to
+a span tag, it will be replaced completely. It will "jump" as
+the new element replaces the existing one. Notice how the two
+elements on either side remain untouched since they have not changed.</p>
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: [['.aqua','A'],['.aqua','B'],['.aqua','C']],
+    after:  [['.aqua','A'],['span.orange','Q'],['.aqua','C']],
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+
+<h3>Removing a sibling element from a list</h3>
+
+<p>Completely removing an element from a list will cause all elements
+after it to be re-evaluated. Since the tags alternate between divs and
+spans, the new list won't line up with the old list and all the
+following tags will end up being replaced entirely.</p>
+
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: [['.aqua','A'],['span.orange','B'],['.aqua','C'],['span.aqua','D']],
+    after:  [['.aqua','A'],['.aqua','C'],['span.aqua','D']],
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+
+<h3>"Nulling" a sibling element from a list</h3>
+
+<p>On the other hand, replacing an element with the value <code>null</code>
+will render an HTML comment placeholder, which keeps subsequent items lined up
+in their original position.</p>
+<p>Compare the "jumping" between this and the previous example. This one
+is much more efficient since only the affected item is redrawn.</p>
+
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: [['.aqua','A'],['span.orange','B'],['.aqua','C'],['span.aqua','D']],
+    after:  [['.aqua','A'],null,['.aqua','C'],['span.aqua','D']],
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+<h3>"Nulling" a child</h3>
+
+<p>You can use <code>null</code> anywhere you might otherwise have an element
+(not just in an array, like above). Here, it is taking the place of several
+child nodes. Notice how the last element does not jump since it is still in the
+same child position.</p>
+
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: ['.aqua','Flowers',
+        ['.orange','Roses'],
+        ['.orange','Sunflowers'],
+        ['.orange','Lavender'],
+    ],
+    after: ['.aqua','Flowers',
+        null,
+        null,
+        ['.orange','Lavender'],
+    ]
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+<h3>A <code>false</code> means "no change"</h3>
+
+<p>This looks just like the <code>null</code> example above, except
+with <code>false</code> in place of two of the items. The difference
+is that the items remain. This is because as long as <code>false</code>
+is rendered into a given position, it will be left alone.</p>
+
+<p>Note how the flowers "jump" when the <strong>Toggle</strong> button
+is a non-false value is toggled back in.</p>
+
+<p>See the Cookbook section below for an example of using <code>false</code>
+to control rendering.</p>
+
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: ['.aqua','Flowers',
+        ['.orange','Roses'],
+        ['.orange','Sunflowers'],
+        ['.orange','Lavender'],
+    ],
+    after: ['.aqua','Flowers',
+        false,
+        false,
+        ['.orange','Lavender'],
+    ]
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+<h3>Other changes</h3>
+
+<p>Arbitrarily complex element tree changes can be made. Just remember that if
+the type of tag in a particular position changes (a &lt;blockquote&gt; becomes
+a &lt;button&gt;), it will be completely replaced and all of its children will
+also be replaced.</p>
+
+<p>TODO: way better example!</p>
+<p>Also TODO: this breaks on the first replace...<p>
+
+<p>(Notice how both lists have a changed item, but the second list changes
+types from unordered to ordered, which causes the entire list to be
+re-rendered.) </p>
+
+<script data-mirror>
+c = make_container();
+
+c.states = {
+    before: ['.orange',
+                ['p.aqua','List one:'],
+                ['br'],
+                ['ul.orange', ['li', 'Goats'], ['li', 'Mice'], ['li', 'Cats']],
+                ['p.aqua','List two:',
+                    ['ul.orange', ['li', 'Snakes'], ['li', 'Gerbils'], ['li', 'Fish']],
+                ]
+            ],
+
+    after: ['.orange',
+                ['ul.aqua', ['li.', 'Goats'], ['li', 'Rats'], ['li', 'Cats']],
+                ['ol.aqua', ['li', 'Snakes'], ['li', 'Stoats'], ['li', 'Fish']],
+            ],
+};
+
+RV.render(c, c.states.before);
+
+toggle_state(c);
+</script>
+
+
+
+
+
+<h2>Cookbook</h2>
+
+<p>Ideas for solutions to common problems.</p>
+
+<h3>Rendering with simple nested functions</h3>
+
+<p>Here you can see that I've broken down the task of drawing lists of
+numbers into drawing the list and drawing the numbers. It's a silly
+example, of course, but the principle applies nicely to a larger and
+more complex interface.</p>
+
+<p>It's worth pointing out that in this case, RetroV doesn't know anything
+about these functions. It's just seeing the returned data they generate.</p>
+
+<script data-mirror>
+c = make_container();
+
+function draw_number(num){
+    return ['.orange', num];
+}
+
+function draw_number_list(num1, num2){
+    return ['.aqua',
+        draw_number(num1),
+        draw_number(num2),
+    ];
+}
+
+RV.render(c, 
+    ['.orange', 'My number lists:',
+        draw_number_list(42, 13),
+        draw_number_list(11, 999),
+    ]
+);
+</script>
+
+
+<h3>Rendering with higher-order functions</h3>
+
+<p>Creating interfaces by generating data also plays extremely well with
+<em>functional programming</em> concepts, such as using <code>map()</code> to
+render an array with a function.</p>
+
+<p>(Map is a higher-order function because it takes another function
+as input.)</p>
+
+<script data-mirror>
+c = make_container();
+
+var fruits = [
+    'Apple',
+    'Pear',
+    'Lime',
+    'Strawberry',
+];
+
+function draw_fruit(num){
+    return ['.aqua', num];
+}
+
+RV.render(c, ['.orange', 'My fruit:', fruits.map(draw_fruit) ]);
+</script>
+
+<h3>Storing state in function closures</h3>
+
+<p>RetroV is built with the philosophy that storing and updating state
+should be separate from rendering the result of that state.</p>
+
+<p>Thus, "components" which track a *lot* of state are antithetical to
+the intention of RetroV. Having said that, it is nice to be able to
+keep track of simple things locally sometimes.</p>
+
+<p>Note that the <code>feed()</code> function in this example doesn't
+just update the counter, it also re-renders <em>everything</em>.
+The whole point of using a VDOM is to let the library detect changes
+and efficiently perform only the updates that are needed.</p>
+
+<script data-mirror>
+// This example needs a unique container variable.
+var c1 = make_container();
+
+function Animal(name, color){
+    var fed = 0;
+
+    function feed(){
+    console.log("feed:",fed);
+        fed++;
+        render_animals();
+    }
+
+    return function draw_animal(){
+        return ['div', {className:color},
+            name + ' has been fed: ' + fed +
+                (fed === 1 ? ' time.' : ' times.'),
+            ['button', {onclick:feed}, 'Feed'],
+        ];
+    };
+}
+
+var tiger = Animal('Tiger', 'orange');
+var fish  = Animal('Fish', 'aqua');
+
+function render_animals(){
+    RV.render(c1, [tiger(), fish()]);
+}
+
+render_animals();
+</script>
+
+<h3>Controlling rendering with <code>false</code></h3>
+
+<p>You may wish to have a section of a page render only once or only
+render (or <em>stop</em> rendering) when some condition has been met.</p>
+
+<p>This example has a "component" that renders exactly twice and then
+returns <code>false</code> to stop rendering no matter how many times
+the surrounding area is re-rendered.</p>
+
+<script data-mirror>
+// This example needs a unique container variable.
+var c2 = make_container();
+
+function RendersTwice(){
+    var render_count = 0;
+
+    return function draw(){
+        render_count++;
+
+        if(render_count > 2){
+            return false;
+        }
+
+        return ['.aqua', 'Rendered: ' + render_count];
+    };
+}
+
+var area_render_count = 0;
+var renders_twice =  RendersTwice();
+
+function render_area(){
+    area_render_count++;
+
+    RV.render(c2, [
+        ['.orange', 'Area rendered: ' + area_render_count],
+        renders_twice(),
+        ['button', {onclick:render_area}, 'Re-Render'],
+    ]);
+}
+
+render_area();
+</script>
+
+<h3>Text input</h3>
+
+<p>This isn't a special technique, but just an example of an extremely
+common interaction that deserves an example somewhere.</p>
+
+<p>There are countless ways to add abstraction to handle the tedious
+redundancy of form elements. This example does not demonstrate any.</p>
+
+<p>Keep in mind that RetroV is a rendering library. It has absolutely no
+opinion about how you save/load/update data.</p>
+
+<script data-mirror>
+// This example needs a unique container variable.
+var c3 = make_container();
+
+var my_data = {
+    name: "Nothing",
+    age: 0,
+};
+
+function update_name(e){
+    my_data.name = e.target.value;
+    render_form();
+}
+
+function update_age(e){
+    my_data.age = e.target.value;
+    render_form();
+}
+
+function render_form(){
+    RV.render(c3, ['form.aqua',
+        ['label', 'Name:',
+            ['input', {
+                type: 'text',
+                value: my_data.name,
+                oninput: update_name,
+            }],
+        ],
+        ['label', 'Age:',
+            ['input', {
+                type: 'text',
+                value: my_data.age,
+                oninput: update_age,
+            }],
+        ],
+        ['p', '"I am ' + my_data.name + ', ' + my_data.age + ' years old."'],
+    ]); // end of form
+}
+
+render_form();
+</script>
+
+
+<!-- End of Demo/Tutorial content! -->
+
+<script>
+// This helper displays the source of script tags:
+
+/*/ The Mirror of Galadriel 2
+ *  Copyright 2023 Dave Gauer (ratfactor.com)
+ *  Released under the MIT License.
+/*/
+document.addEventListener("DOMContentLoaded", function(e) {
+    var scripts = document.querySelectorAll('script[data-mirror]');
+    if(scripts.length<1){
+        console.log("Galadriel's Mirror 2: No scripts with data-mirror found.");
+    }
+    scripts.forEach(function(script){
+        // remove initial blank line from script (if any)
+        var text = script.innerHTML.replace(/^\r?\n/, '');
+        // create <pre> to mirror text contents
+        var mirror = document.createElement('pre');
+        mirror.innerHTML = text;
+        script.parentNode.insertBefore(mirror, script);
+    });
+});
+</script>
+</body>
+</html>

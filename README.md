@@ -2,26 +2,25 @@
 
 # RetroV
 
-A retro-style "vanilla JS" VDOM template library.
+A retro-style "vanilla JS" VDOM-diffing rendering library.
 
 * No `h()` function, templates are pure JS data.
-* Codebase is charmingly anachronistic!
-* Browser only, install by including in a script tag!
+* Browser only. (Sorry, Node users!)
+* Codebase charmingly anachronistic. (`function` spoken here.)
 
-## Work in Progress
+Read more on the World Wide Web here:
 
-At the time of this writing, this code is `1` day old.
-Here's what works so far:
+http://ratfactor.com/retrov/
 
-* Data structure definition for VNodes seems good so far.
-* Visual test/demo page with some basic rendering examples.
-* DOM events and re-rendering a section seem fine.
+## Installation
 
+```
+<script src="retrov.js"></script>
+```
 
-## Example
+## Example (a whole web page!)
 
-Take a look at `test.html` in this repo for examples, but here's
-a quick glimpse:
+Here's a quick a quick glimpse:
 
 ```
 <html><body>
@@ -38,7 +37,17 @@ RV.render(
     ]
 );
 </script>
+</body></html>
 ```
+
+Take a look at `demo.html` in this repo or see it live here:
+
+http://ratfactor.com/retrov/demo.html
+
+You can also run the test suite `test.html` or run it live:
+
+http://ratfactor.com/retrov/test.html
+
 
 ## Why?
 
@@ -61,10 +70,3 @@ DOM without the 'h()' function - pure JS data structures.
 I _think_ I'd seen this concept before, but maybe not. At any rate, this
 has heavily influenced RetroV. This library is for transforming data,
 not rendering. Super compact code!
-
-[Hyperscript](https://github.com/hyperhype/hyperscript/) -
-Hyperscript renderer only, no VDom. Nice single-file JavaScript code!
-
-[udomdiff](https://github.com/WebReflection/udomdiff/) -
-(I'm not diffing at the time of this writing.)
-Just DOM diffing, wonderfully concise and _very_ readable code.
