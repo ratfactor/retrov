@@ -14,7 +14,7 @@
         a, a:hover, a:visited { color: #F0A; }
         pre { padding: 1em; font-size: 0.8em; margin-left: 2em; }
         pre,code { color: #F4F; }
-        h2 { color: #acff47; }
+        h2 { color: #acff47; margin-top: 2em; border-bottom: 2px solid #acff47; }
         h3 { color: #47ffdd; margin-top: 3em; }
         strong { color: #47ffdd; }
         .container {
@@ -91,7 +91,7 @@ function toggle_state(c){
 var c; // re-used a bunch to hold example containers
 </script>
 
-<h2>Including ("installing")</h2>
+<h2>Using and </h2>
 
 <p>You can add the RetroV library to a page
 with nothing more than a script tag like so:
@@ -101,8 +101,10 @@ with nothing more than a script tag like so:
 </pre>
 
 <p>This exposes a global <code>RV</code> object with a <code>render()</code>
-method. The first render parameter is a target DOM element to render into.
-The second parameter is an element or tree of "VNode" data to be rendered.<p>
+method. The first render parameter is a target DOM element to render into.  The
+second parameter is an element or tree of "virtual node" data to be
+rendered.<p>
+
 <pre>
 RV.render(document.body, 'Hello world.");
 
@@ -428,47 +430,6 @@ RV.render(c, c.states.before);
 toggle_state(c);
 </script>
 
-<h3>Other changes</h3>
-
-<p>Arbitrarily complex element tree changes can be made. Just remember that if
-the type of tag in a particular position changes (a &lt;blockquote&gt; becomes
-a &lt;button&gt;), it will be completely replaced and all of its children will
-also be replaced.</p>
-
-<p>TODO: way better example!</p>
-<p>Also TODO: this breaks on the first replace...<p>
-
-<p>(Notice how both lists have a changed item, but the second list changes
-types from unordered to ordered, which causes the entire list to be
-re-rendered.) </p>
-
-<script data-mirror>
-c = make_container();
-
-c.states = {
-    before: ['.orange',
-                ['p.aqua','List one:'],
-                ['br'],
-                ['ul.orange', ['li', 'Goats'], ['li', 'Mice'], ['li', 'Cats']],
-                ['p.aqua','List two:',
-                    ['ul.orange', ['li', 'Snakes'], ['li', 'Gerbils'], ['li', 'Fish']],
-                ]
-            ],
-
-    after: ['.orange',
-                ['ul.aqua', ['li.', 'Goats'], ['li', 'Rats'], ['li', 'Cats']],
-                ['ol.aqua', ['li', 'Snakes'], ['li', 'Stoats'], ['li', 'Fish']],
-            ],
-};
-
-RV.render(c, c.states.before);
-
-toggle_state(c);
-</script>
-
-
-
-
 
 <h2>Cookbook</h2>
 
@@ -538,7 +499,7 @@ RV.render(c, ['.orange', 'My fruit:', fruits.map(draw_fruit) ]);
 <p>RetroV is built with the philosophy that storing and updating state
 should be separate from rendering the result of that state.</p>
 
-<p>Thus, "components" which track a *lot* of state are antithetical to
+<p>Thus, "components" which track a <em>lot</em> of state are antithetical to
 the intention of RetroV. Having said that, it is nice to be able to
 keep track of simple things locally sometimes.</p>
 
@@ -674,6 +635,8 @@ function render_form(){
 
 render_form();
 </script>
+
+<br><br>
 
 
 <!-- End of Demo/Tutorial content! -->
