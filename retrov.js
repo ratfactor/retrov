@@ -119,7 +119,7 @@
         // Looks like we're creating a normal element
         var el = document.createElement(v.t);
 
-        // Update props
+        // Set new element props
         Object.keys(v.p).forEach(function(k){
             if(k === 'style'){
                 // Special handling for style property
@@ -171,7 +171,11 @@
                 // Special handling of label 'for'
                 dom_elem['htmlFor'] = new_v.p['for'];
             }
-            if(new_v.p[k] != old_v.p[k]){
+            if(k === 'value'){
+                // Special - we always update input value
+                dom_elem['value'] = new_v.p['value'];
+            }
+            if(new_v.p[k] !== old_v.p[k]){
                 dom_elem[k] = new_v.p[k];
             }
         });

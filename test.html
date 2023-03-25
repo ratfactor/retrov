@@ -719,6 +719,34 @@ add_render(['label', {'for':'Z'}]);
 assert($('label').htmlFor === 'Z');
 end_test();
 
+// Special handling of form elements since their values can change
+// on their own!
+start_test("Set value for input, change it, set it again",
+    ['input', {type:'text', value:'apple'}]);
+assert($('input').value === 'apple');
+$('input').value = 'grape';
+assert($('input').value === 'grape');
+// IMPORTANT: this is the SAME value we had in prev render:
+add_render(['input', {type:'text', value:'apple'}]);
+assert($('input').value === 'apple');
+add_render(['input', {type:'text', value:'pear'}]);
+assert($('input').value === 'pear');
+end_test();
+
+start_test("Set value for textarea, change it, set it again",
+    ['textarea', {type:'text', value:'apple'}]);
+assert($('textarea').value === 'apple');
+$('textarea').value = 'grape';
+assert($('textarea').value === 'grape');
+// IMPORTANT: this is the SAME value we had in prev render:
+add_render(['textarea', {type:'text', value:'apple'}]);
+assert($('textarea').value === 'apple');
+add_render(['textarea', {type:'text', value:'pear'}]);
+assert($('textarea').value === 'pear');
+end_test();
+
+
+
 // =======================================================================
 // All done, print simple count summary
 
