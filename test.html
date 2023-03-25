@@ -52,7 +52,6 @@
             padding: 2em;
         }
     </style>
-    <script src="retrov.js"></script>
 </head>
 <body>
 
@@ -62,10 +61,9 @@
 be clear of errors. Roll over (or click on) a test box to see a description.
 </p>
 
-<div id="test_output"></div>
-<div id="test_container"></div>
-
 <script>
+function test(output_id, container_id){
+
 // Hint:
 // If an assertion about the contents of the container fails,
 // a fast way to see what was rendered is to put this after
@@ -74,8 +72,8 @@ be clear of errors. Roll over (or click on) a test box to see a description.
 //   output.append(container.innerHTML);
 //
 
-var output = document.getElementById('test_output');
-var container = document.getElementById('test_container');
+var output = document.getElementById(output_id);
+var container = document.getElementById(container_id);
 
 var current_test = "not started";
 var asserts = [];
@@ -728,6 +726,23 @@ container.replaceChildren(
   '' + test_count + ' tests and ' + assert_count + ' assertions done!'
 );
 
+} // end of test()
+
 </script>
+
+<h2>Unminified:</h2>
+<div id="test_output"></div>
+<div id="test_container"></div>
+<script src="retrov.js"></script>
+<script>test('test_output', 'test_container');</script>
+
+<h2>Minified:</h2>
+<div id="test_output_min"></div>
+<div id="test_container_min"></div>
+<script src="retrov.min.js"></script>
+<script>test('test_output_min', 'test_container_min');</script>
+
+<br><br>
+
 </body>
 </html>
