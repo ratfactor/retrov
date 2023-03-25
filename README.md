@@ -2,11 +2,10 @@
 
 # RetroV
 
-A retro-style "vanilla JS" VDOM-diffing rendering library.
+RetroV (pronounced "retro vee") is a virtual DOM (VDOM) rendering library.
+It is browser-native and has no dependencies or build system.
 
-* No `h()` function, templates are pure JS data.
-* Browser only. (Sorry, Node users!)
-* Codebase charmingly anachronistic. (`function` spoken here.)
+It’s tiny: 997 bytes (the usual minified gzipped metric).
 
 Read more on the World Wide Web here:
 
