@@ -170,10 +170,12 @@
             if(k === 'for'){
                 // Special handling of label 'for'
                 dom_elem['htmlFor'] = new_v.p['for'];
+                return;
             }
-            if(k === 'value'){
-                // Special - we always update input value
-                dom_elem['value'] = new_v.p['value'];
+            if(k === 'value' || k === 'checked'){
+                // Special - we *always* update form element values
+                dom_elem[k] = new_v.p[k];
+                return;
             }
             if(new_v.p[k] !== old_v.p[k]){
                 dom_elem[k] = new_v.p[k];
@@ -247,7 +249,7 @@
             return {t:mytag, p:props, c:children};
         }
 
-        console.error("make_obj() cannot handle this:",v);
+        console.error("RetroV: make_obj() cannot handle this:",v);
     }
 
     function make_children(vlist){

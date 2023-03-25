@@ -745,6 +745,18 @@ add_render(['textarea', {type:'text', value:'pear'}]);
 assert($('textarea').value === 'pear');
 end_test();
 
+start_test("Set checkbox checked, change it, set again",
+    ['input', {type:'checkbox', checked:true}]);
+assert($('input[type="checkbox"]').checked);
+$('input[type="checkbox"]').checked = false;
+assert(!$('input[type="checkbox"]').checked); // not
+// IMPORTANT: same as original render
+add_render(['input', {type:'checkbox', checked:true}]);
+assert($('input[type="checkbox"]').checked);
+add_render(['input', {type:'checkbox', checked:false}]);
+assert(!$('input[type="checkbox"]').checked); // not
+end_test;
+
 
 
 // =======================================================================
