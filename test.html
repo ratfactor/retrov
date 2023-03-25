@@ -710,6 +710,18 @@ assert($('div > span').style.backgroundColor === 'green');
 end_test();
 
 // =======================================================================
+// Misc
+
+// Special handling of label "for" attribute (is htmlFor in JS!)
+start_test("Set label 'for' and change it", ['label', {'for':'X'}]);
+assert($('label').htmlFor === 'X');
+add_render(['label', {htmlFor:'Y'}]); // via real js name
+assert($('label').htmlFor === 'Y');
+add_render(['label', {'for':'Z'}]);
+assert($('label').htmlFor === 'Z');
+end_test();
+
+// =======================================================================
 // All done, print simple count summary
 
 container.replaceChildren(

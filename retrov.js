@@ -126,6 +126,10 @@
                 set_or_update_style(el, {}, v);
                 return;
             }
+            if(k === 'for'){
+                // Special handling of label 'for'
+                el['htmlFor'] = v.p['for'];
+            }
             el[k] = v.p[k];
         });
 
@@ -154,11 +158,18 @@
         }
 
         // Update element props
+        // TODO: As another todo below states, this is nearly identical
+        // to the create logic for properties above (minus the check for
+        // old vs new properties...), see if we can extract 'em out.
         Object.keys(new_v.p).forEach(function(k){
             if(k === 'style'){
                 // Special handling for style property
                 set_or_update_style(dom_elem, old_v, new_v);
                 return;
+            }
+            if(k === 'for'){
+                // Special handling of label 'for'
+                dom_elem['htmlFor'] = new_v.p['for'];
             }
             if(new_v.p[k] != old_v.p[k]){
                 dom_elem[k] = new_v.p[k];
