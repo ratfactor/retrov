@@ -5,7 +5,7 @@
 RetroV (pronounced "retro vee") is a virtual DOM (VDOM) rendering library.
 It is browser-native and has no dependencies or build system.
 
-It’s tiny: 1015 bytes (the usual minified gzipped metric).
+It’s tiny: **1015 bytes** (the usual minified gzipped metric).
 
 Read more on the World Wide Web here:
 
@@ -17,11 +17,12 @@ http://ratfactor.com/retrov/
 <script src="retrov.js"></script>
 ```
 
-## Example (a whole web page!)
+## Example
 
-Here's a quick glimpse:
+Here's a quick glimpse (a whole web page!):
 
 ```
+<!DOCTYPE html>
 <html><body>
 <script src="retrov.js"></script>
 <script>
@@ -39,7 +40,8 @@ RV.render(
 </body></html>
 ```
 
-Take a look at `demo.html` in this repo or see it live here:
+For more examples and fairly complete **tutorial**, take a look at
+at `demo.html` in this repo or see it live here:
 
 http://ratfactor.com/retrov/demo.html
 
@@ -50,7 +52,7 @@ http://ratfactor.com/retrov/test.html
 
 ## Why?
 
-Couldn't find anything exactly like it. Lots of bits and pieces
+I couldn't find anything exactly like it. Lots of bits and pieces
 I liked, but not this exact thing.
 
 ## Inspiration
