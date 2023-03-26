@@ -166,7 +166,7 @@ assert(container.innerHTML == 'foo')
 end_test();
 
 start_test("Empty array should make comment", []);
-assert(container.innerHTML.includes('RV:empty-array'));
+assert(container.innerHTML.includes('RV:array-placeholder'));
 end_test();
 
 start_test("Null should make comment", null);
@@ -190,7 +190,7 @@ assert($('div').innerHTML == 'foobar');
 end_test();
 
 start_test("Tag with css class",
-    ['div', {className:'x'}]
+    ['div', {'class':'x'}]
 );
 assert($('div.x'));
 end_test();
@@ -214,7 +214,7 @@ assert($('div.x.y.z'));
 end_test();
 
 start_test("Implicit div, one shorthand, two regular classes",
-    ['.x', {className:'y z'}]
+    ['.x', {'class':'y z'}]
 );
 assert($('div.x.y.z'));
 end_test();
@@ -515,7 +515,7 @@ assert($('form > label > input[value="no"]'));
 assert($('form > button').innerHTML == 'Create Character');
 add_render([]);
 assert(!$('form')); // not
-assert(container.innerHTML.includes('RV:empty-array'));
+assert(container.innerHTML.includes('RV:array-placeholder'));
 add_render(['.nothing', [], [], null, []]);
 assert($('.nothing'));
 assert($('.nothing').innerHTML.includes('RV:null-placeholder'));
@@ -755,7 +755,7 @@ add_render(['input', {type:'checkbox', checked:true}]);
 assert($('input[type="checkbox"]').checked);
 add_render(['input', {type:'checkbox', checked:false}]);
 assert(!$('input[type="checkbox"]').checked); // not
-end_test;
+end_test();
 
 var my_input_ref = null;
 start_test("Use oncreate to store ref, manipulate element",
@@ -769,7 +769,7 @@ start_test("Use oncreate to store ref, manipulate element",
 assert($('input').value === 'TEST1');
 my_input_ref.value = 'TEST2'; // manually change it through reference
 assert($('input').value === 'TEST2');
-end_test;
+end_test();
 
 
 // =======================================================================

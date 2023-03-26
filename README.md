@@ -5,7 +5,7 @@
 RetroV (pronounced "retro vee") is a virtual DOM (VDOM) rendering library.
 It is browser-native and has no dependencies or build system.
 
-It’s tiny: 997 bytes (the usual minified gzipped metric).
+It’s tiny: 1015 bytes (the usual minified gzipped metric).
 
 Read more on the World Wide Web here:
 

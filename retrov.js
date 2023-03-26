@@ -51,43 +51,23 @@
 
         if(new_v.t === false){
             if(typeof old_v === 'undefined'){
-                // this could arguably be an error condition???
-                dom_container.append(
-                    document.createComment("RV:false-placeholder"));
+                dom_container.append(placeholder('false'));
             }
             return;
         }
 
         if(new_v.t === '['){
-            // Special array handling: An array here represents ALL children
-            // of the current node.
-            var old_siblings = [];
-
-            if(old_v && old_v.t === '['){
-                old_siblings = old_v.c;
-            }
-
-            var len = Math.max(old_siblings.length, new_v.c.length);
-
-            if(old_siblings.length > new_v.c.length){
-                // Removing, go in reverse to remove from the end!
-                // go in reverse!
-                for(var i=len-1; i>=0; i--){
-                    render(dom_container, old_siblings[i], new_v.c[i], i);
-                }
-            }
-            else{
-                // Adding or updating, go forward!
-                for(var i=0; i<len; i++){
-                    render(dom_container, old_siblings[i], new_v.c[i], i);
-                }
-            }
+            // An array here represents ALL children of the current node.
 
             if(new_v.c.length === 0){
                 // Special: the new array is empty!
-                dom_container.replaceChildren(
-                    document.createComment("RV:empty-array"));
+                dom_container.replaceChildren(placeholder('array'));
+                return;
             }
+
+            var old_siblings = (old_v && old_v.t === '[' ? old_v.c : []);
+
+            resolve_siblings(dom_container, old_siblings, new_v.c);
 
             return;
         }
@@ -104,11 +84,8 @@
             return;
         }
 
-        if(old_v.t === new_v.t){
-            // Same type, update props and children
-            update(child, old_v, new_v);
-            return;
-        }
+        // They must be the same type, update props and children
+        update(child, old_v, new_v);
     }
 
     function create(v){
@@ -117,11 +94,11 @@
         } 
 
         if(v.t === null){
-            return document.createComment("RV:null-placeholder");
+            return placeholder('null');
         }
 
         if(v.t === false){
-            return document.createComment("RV:false-placeholder");
+            return placeholder('false');
         }
 
         // Looks like we're creating a normal element
@@ -156,6 +133,10 @@
         return el;
     }
 
+    function placeholder(t){
+        return document.createComment('RV:' + t + '-placeholder');
+    }
+
     function set_or_update_style(dom_elem, old_v, new_v){
         var old_style = (old_v.p && old_v.p.style ? old_v.p.style : {});
         Object.keys(new_v.p.style).forEach(function(sk){
@@ -173,18 +154,10 @@
         }
 
         // Update element props
-        // TODO: As another todo below states, this is nearly identical
-        // to the create logic for properties above (minus the check for
-        // old vs new properties...), see if we can extract 'em out.
         Object.keys(new_v.p).forEach(function(k){
             if(k === 'style'){
                 // Special handling for style property
                 set_or_update_style(dom_elem, old_v, new_v);
-                return;
-            }
-            if(k === 'for'){
-                // Special handling of label 'for'
-                dom_elem['htmlFor'] = new_v.p['for'];
                 return;
             }
             if(k === 'value' || k === 'checked'){
@@ -198,24 +171,22 @@
         });
 
         // Now recurse into element children
-        var len = Math.max(old_v.c.length, new_v.c.length);
+        resolve_siblings(dom_elem, old_v.c, new_v.c);
+    }
 
-        // TODO: This logic is pretty much identical with the
-        // array add/update/remove loops in render(). Can they
-        // be teased out?
-        if(old_v.c.length > new_v.c.length){
-            // if we'll be REMOVING, we need to go in reverse!
-            for(var i=len-1; i>=0; i--){
-                render(dom_elem, old_v.c[i], new_v.c[i], i);
+    function resolve_siblings(dom_elem, olds, news){
+        if(olds.length > news.length){
+            // If we'll be removing, we need to go in *reverse*!
+            for(var i=olds.length-1; i>=0; i--){
+                render(dom_elem, olds[i], news[i], i);
             }
         }
         else{
-            for(var i=0; i<len; i++){
-                render(dom_elem, old_v.c[i], new_v.c[i], i);
+            for(var i=0; i<news.length; i++){
+                render(dom_elem, olds[i], news[i], i);
             }
         }
     }
-
 
     function make_obj(v){
         // Turn everything into a {t:<type>,...} object so we can
@@ -234,15 +205,24 @@
             return {t:false};
         }
         if(Array.isArray(v) && typeof v[0] === 'string'){
+            // This is a regular element vnode.
             var child_start = 1;
             var props = {};
             if(typeof v[1] === 'object' && !Array.isArray(v[1])){
                 props = v[1];
+                if(typeof props['class'] !== 'undefined'){
+                    props['className'] = props['class'];
+                    delete props['class'];
+                }
+                if(typeof props['for'] !== 'undefined'){
+                    props['htmlFor'] = props['for'];
+                    delete props['for'];
+                }
                 child_start = 2;
             }
 
-            var tag = v[0];
             // Decode classes (e.g. "div.message.bold"):
+            var tag = v[0];
             var myclasses = [];
             var m = tag.split('.');
             var mytag = m.shift();

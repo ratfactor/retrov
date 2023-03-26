@@ -167,13 +167,20 @@ RV.render(c, [
 <h3>Properties</h3>
 <p>HTML tags can have a properties object as the second item.  Let's make this
 paragraph tag more interesting by assigning a class via the
-<code>className</code> property. After this object, any children follow
-as usual.</p>
+<code>class</code> property.
+After this object, any children follow as usual.</p>
 <script data-mirror>
 c = make_container();
 
-RV.render(c, ['p', {className: 'aqua'}, 'Classy paragraph.']);
+RV.render(c, ['p', {'class': 'aqua'}, 'Classy paragraph.']);
 </script>
+
+<p>Note: Sharp-eyed JavaScript developers will recognize that 'class' is a reserved
+word and is not used as the actual property in the JS interface to theDOM.
+RetroV automatically converts
+<code>class</code> to <code>className</code> (and <code>for</code> to <code>htmlFor</code>)
+for you. You are welcome to use the second form directly.</p>
+
 
 <h3>Class shorthand</h3>
 <p>Because it's so common to apply a class name (or two) to
@@ -247,15 +254,15 @@ any differences to the real DOM.</p>
 
 <h3>Changing an HTML node property</h3>
 
-<p>Here, the <code>className</code> (class) property is being updated.
+<p>Here, the <code>class</code> (class) property is being updated.
 Click the <strong>Toggle</strong> button to see the change applied.
 Click it again to revert to the original state.</p>
 <script data-mirror>
 c = make_container();
 
 c.states = {
-    before: ['div', {className:'aqua'}, 'Hello world'],
-    after:  ['div', {className:'orange'}, 'Hello world'],
+    before: ['div', {'class':'aqua'}, 'Hello world'],
+    after:  ['div', {'class':'orange'}, 'Hello world'],
 };
 
 RV.render(c, c.states.before);
@@ -283,7 +290,7 @@ toggle_state(c);
 <h3>Adding an item to a list</h3>
 
 <p>In the example below, a third &lt;div&gt; element is added to the
-list. Clicking <strong>Toggle</strong> a second time removes the
+list. Clicking <strong>Toggle</strong> a <em>second</em> time removes the
 element and so on.</p>
 <p>Note how the new element "jumps" when it is added. This is done with
 a CSS animation when the element is added to the DOM.
@@ -557,7 +564,7 @@ function Animal(name, color){
     }
 
     return function draw_animal(){
-        return ['div', {className:color},
+        return ['div', {'class':color},
             name + ' has been fed: ' + fed +
                 (fed === 1 ? ' time.' : ' times.'),
             ['button', {onclick:feed}, 'Feed'],
