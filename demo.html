@@ -430,6 +430,41 @@ RV.render(c, c.states.before);
 toggle_state(c);
 </script>
 
+<h3>Special event: <code>oncreate</code></h3>
+
+<p>It <em>should</em> be fairly rare, but sometimes you cannot avoid
+directly manipulating DOM elements. RetroV has a special pseudo-event
+called <code>oncreate</code> which takes a function. When the actual
+DOM element for that virtual element is created and attached to the
+DOM, the function is called and passed a reference to the element.
+</p>
+
+<p>In this example, we want to animate a div by manipulating the
+element directly. We <em>could</em> do this by re-rendering the
+entire scene through <code>RV.render()</code>, but that would be
+wasteful.</p>
+
+<script data-mirror>
+c = make_container();
+
+function twitchy_start(elem){
+    var twitch=false;
+    setInterval(
+        function(){
+            elem.style.marginLeft = (twitch?'10px':'0');
+            twitch=!twitch;
+        },
+        500, // half second
+    );
+}
+
+RV.render(c, ['.twitchy',
+    {
+        oncreate: twitchy_start,
+    },
+    'Twitchy Div!',
+]);
+</script>
 
 <h2>Cookbook</h2>
 
@@ -563,7 +598,7 @@ function RendersTwice(){
             return false;
         }
 
-        return ['.aqua', 'Rendered: ' + render_count];
+        return ['.aqua', 'Renders Twice: ' + render_count];
     };
 }
 
@@ -573,8 +608,7 @@ var renders_twice =  RendersTwice();
 function render_area(){
     area_render_count++;
 
-    RV.render(c2, [
-        ['.orange', 'Area rendered: ' + area_render_count],
+    RV.render(c2, ['.orange', 'Area rendered: ' + area_render_count,
         renders_twice(),
         ['button', {onclick:render_area}, 'Re-Render'],
     ]);
@@ -635,6 +669,34 @@ function render_form(){
 
 render_form();
 </script>
+
+<h3>Element focus</h3>
+
+<p>The <code>oncreate</code> pseudo-event is one of the few ways to
+make sure certain dynamic properties such as input focus are handled
+correctly on a page in certain circumstances.</p>
+
+<p>This particualr example is silly, but it's the sort of real problem
+that crops up in interfaces all the time.</p>
+
+<script data-mirror>
+c = make_container();
+
+var my_input = null;
+
+function input_created(elem){
+    my_input = elem;
+}
+function focus_input(){
+    my_input.focus();
+}
+
+RV.render(c, ['.orange',
+    ['input', {oncreate:input_created}],
+    ['button', {onclick:focus_input}, 'Focus the input'],
+]);
+</script>
+
 
 <br><br>
 

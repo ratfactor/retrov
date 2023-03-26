@@ -757,6 +757,19 @@ add_render(['input', {type:'checkbox', checked:false}]);
 assert(!$('input[type="checkbox"]').checked); // not
 end_test;
 
+var my_input_ref = null;
+start_test("Use oncreate to store ref, manipulate element",
+    ['input', {
+        value: 'TEST1',
+        oncreate:function(el){
+            my_input_ref = el;
+        },
+    }]
+);
+assert($('input').value === 'TEST1');
+my_input_ref.value = 'TEST2'; // manually change it through reference
+assert($('input').value === 'TEST2');
+end_test;
 
 
 // =======================================================================

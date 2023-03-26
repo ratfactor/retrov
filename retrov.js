@@ -2,6 +2,7 @@
  * MIT License - Copyright 2023 David Gauer (ratfactor.com)
  */
 (function RetroV(){
+    var create_callbacks = [];
 
     function user_render(dom_container, v){
         var dom_index = 0;
@@ -21,6 +22,13 @@
         // Call internal render function with old/new.
         // Sibling 0 (dom_index) on first run in container.
         render(dom_container, old_v, new_v, dom_index);
+
+        // If any 'oncreate' functions were found, call
+        // them now:
+        create_callbacks.forEach(function(cc){
+            cc.fn(cc.el);
+        });
+        cc = [];
     }
 
     function render(dom_container, old_v, new_v, dom_index){
@@ -129,6 +137,13 @@
             if(k === 'for'){
                 // Special handling of label 'for'
                 el['htmlFor'] = v.p['for'];
+                return;
+            }
+            if(k === 'oncreate' && typeof v.p[k] === 'function'){
+                // Special pseudo-event: we're creating this.
+                // Pass reference to new element.
+                create_callbacks.push({el:el,fn:v.p[k]});
+                return;
             }
             el[k] = v.p[k];
         });
