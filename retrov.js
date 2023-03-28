@@ -101,8 +101,19 @@
             return placeholder('false');
         }
 
-        // Looks like we're creating a normal element
-        var el = document.createElement(v.t);
+        if(v.t === '<'){
+            return create_html(v.html);
+        }
+
+        // Else we're creating a normal element
+        try{
+            var el = document.createElement(v.t);
+        } catch(e) {
+            if(e instanceof DOMException){
+                console.error("RetroV: Bad element name: ", v.t);
+            }
+            throw e;
+        }
 
         // Set new element props
         Object.keys(v.p).forEach(function(k){
@@ -133,6 +144,18 @@
         return el;
     }
 
+    function create_html(html){
+        // Make temporary container
+        var d = document.createElement('div');
+        d.innerHTML = html;
+
+        // Note that this can only return ONE element created from
+        // the HTML string. Sure, we could return an array, but then
+        // our DOM child count would no longer line up with the
+        // virtual tree and the program would get sad and explode.
+        return d.childNodes[0];
+    }
+
     function placeholder(t){
         return document.createComment('RV:' + t + '-placeholder');
     }
@@ -150,6 +173,12 @@
         // Text nodes just have data
         if(new_v.t === '"'){
             dom_elem.data = new_v.text;
+            return;
+        }
+
+        // If it's raw HTML, don't update. Note that it *could* update.
+        // If you want it to, check for changes and call create_html().
+        if(new_v.t === '<'){
             return;
         }
 
@@ -197,6 +226,9 @@
         }
         if(Array.isArray(v) && typeof v[0] !== 'string'){
             return {t:'[', c:v.map(make_obj)};
+        }
+        if(Array.isArray(v) && typeof v[0] === 'string' && v[0][0] === '<'){
+            return {t:'<', html:v};
         }
         if(v === null){
             return {t:null};

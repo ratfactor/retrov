@@ -12,7 +12,7 @@
             margin: auto;
         }
         a, a:hover, a:visited { color: #F0A; }
-        pre { padding: 1em; font-size: 0.8em; margin-left: 2em; }
+        pre { padding: 1em; font-size: 0.8em; margin-left: 2em; overflow: auto; }
         pre,code { color: #F4F; }
         h2 { color: #acff47; margin-top: 2em; border-bottom: 2px solid #acff47; }
         h3 { color: #47ffdd; margin-top: 3em; }
@@ -222,6 +222,32 @@ RV.render(c,
     ]
 );
 </script>
+
+<h3>HTML literals</h3>
+
+<p>It is inevitable that you will eventually need to include a bit of raw
+markup in your interface. RetroV supports this. If it detects that you have an
+element name that starts with "<code>&lt;</code>...", it assumes the whole
+string is raw HTML.</p>
+
+<p><strong>Note:</strong> There are two caveats with this feature:
+<strong>1.</strong> Only <em>one</em> top-level item will be created
+(it can have as many children as you like).
+<strong>2.</strong> For efficiency, the HTML will not be re-evaluated,
+so modifying the HTML string and re-rendering won't do anything.
+</p>
+
+<script data-mirror>
+c = make_container();
+
+var svg_smiley = '<svg xmlns="http://www.w3.org/2000/svg" width="215.123" height="215.123" viewBox="0 0 56.918 56.918"><circle cx="28.459" cy="28.459" r="28.084" fill="#faf100" stroke="#070707" stroke-width=".75"/><ellipse cx="18.074" cy="20.509" rx="4.972" ry="7.382"/><ellipse cx="38.712" cy="20.509" rx="4.972" ry="7.382"/><path d="M11.739 38.311c7.173 11.435 26.554 11.585 33.419 0" fill="none" stroke="#070707" stroke-width="1.55"/></svg>';
+
+RV.render(c, ['.aqua',
+    ['<div style="font-size: 1.7em">Have a nice day!</div>'],
+    [svg_smiley],
+]);
+</script>
+
 
 
 <h3>Nested HTML nodes</h3>
@@ -724,7 +750,10 @@ document.addEventListener("DOMContentLoaded", function(e) {
     }
     scripts.forEach(function(script){
         // remove initial blank line from script (if any)
-        var text = script.innerHTML.replace(/^\r?\n/, '');
+        var text = script.innerHTML
+            .replace(/^\r?\n/, '')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;');
         // create <pre> to mirror text contents
         var mirror = document.createElement('pre');
         mirror.innerHTML = text;

@@ -771,6 +771,22 @@ my_input_ref.value = 'TEST2'; // manually change it through reference
 assert($('input').value === 'TEST2');
 end_test();
 
+start_test("Raw HTML", ['div']);
+assert($('div'));
+add_render(['div', ['<span class="hi">Hello</span>']]);
+assert($('div > span.hi'));
+assert($('div > span.hi').innerHTML == 'Hello');
+add_render(['div', ['<span class="hi">Bye</span>']]);
+// we are *expecting* this to not reflect the new text - html
+// literals do not re-evaluate
+assert($('div > span.hi').innerHTML == 'Hello');
+add_render(['div', ['b', 'B'], ['<span class="hi">Bye</span>']]);
+assert($('div > b'));
+assert($('div > span.hi'));
+assert($('div > span.hi').innerHTML == 'Bye');
+add_render(['div']);
+assert(!$('div > span.hi')); // not
+end_test();
 
 // =======================================================================
 // All done, print simple count summary
