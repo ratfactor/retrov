@@ -112,8 +112,9 @@ RV.render(document.getElementById('my_panel'), ['div', ...]);
 </pre>
 
 <p>RetroV can be used to render HTML from JavaScript once as a
-"template" engine. Or it can be used to create interactive UIs with
-functional components.</p>
+template engine. Or it can be used to create interactive UIs with
+functional "components".</p>
+
 <p>The rest of this page is a series of increasingly interesting examples
 that run live in the browser.</p>
 
@@ -176,7 +177,7 @@ RV.render(c, ['p', {'class': 'aqua'}, 'Classy paragraph.']);
 </script>
 
 <p>Note: Sharp-eyed JavaScript developers will recognize that 'class' is a reserved
-word and is not used as the actual property in the JS interface to theDOM.
+word and is not used as the actual property in the JS interface to the DOM.
 RetroV automatically converts
 <code>class</code> to <code>className</code> (and <code>for</code> to <code>htmlFor</code>)
 for you. You are welcome to use the second form directly.</p>
@@ -229,6 +230,9 @@ RV.render(c,
 markup in your interface. RetroV supports this. If it detects that you have an
 element name that starts with "<code>&lt;</code>...", it assumes the whole
 string is raw HTML.</p>
+
+<p>There are lots of ways to use this feature, including cloning another
+element (and its children) by stealing its <code>innerHTML</code> content.</p>
 
 <p><strong>Note:</strong> There are two caveats with this feature:
 <strong>1.</strong> Only <em>one</em> top-level item will be created
@@ -432,12 +436,12 @@ toggle_state(c);
 <h3>A <code>false</code> means "no change"</h3>
 
 <p>This looks just like the <code>null</code> example above, except
-with <code>false</code> in place of two of the items. The difference
+with <code>false</code> in place of two of the items. The visual difference
 is that the items remain. This is because as long as <code>false</code>
-is rendered into a given position, it will be left alone.</p>
+is given for a position, it will be <em>left alone</em>.</p>
 
 <p>Note how the flowers "jump" when you click the <strong>Toggle</strong>
-button a second time and a non-false value is given.</p>
+button a <em>second</em> time (as a non-false value is toggled back in).</p>
 
 <p>See the Cookbook section below for an example of using <code>false</code>
 to control rendering.</p>
@@ -487,7 +491,7 @@ function twitchy_start(elem){
             elem.style.marginLeft = (twitch?'10px':'0');
             twitch=!twitch;
         },
-        500, // half second
+        800, // fraction of a second
     );
 }
 
@@ -610,12 +614,14 @@ render_animals();
 
 <h3>Controlling rendering with <code>false</code></h3>
 
-<p>You may wish to have a section of a page render only once or only
-render (or <em>stop</em> rendering) when some condition has been met.</p>
+<p>You may wish to have a section of a page only render 
+(or <em>stop</em> rendering) when some condition has been met.</p>
 
-<p>This example has a "component" that renders exactly twice and then
-returns <code>false</code> to stop rendering no matter how many times
-the surrounding area is re-rendered.</p>
+<p>This example has a "component" that renders exactly twice. It does
+this by returning <code>false</code> after the second render.</p>
+
+<p>Noticec how the area's render counter will continue to go up, but the
+"component" will stop incrementing at 2.</p>
 
 <script data-mirror>
 // This example needs a unique container variable.
