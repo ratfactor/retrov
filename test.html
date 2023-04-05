@@ -333,6 +333,24 @@ assert($('div.grandpa > span.x').innerHTML == 'yz');
 end_test();
 
 
+start_test("Non-empty DOM container should be emptied on first run", ['h1', 'Hello'] );
+// This one is different. The above start_test() will insert some stuff
+// and RetroV will set the "old_v" (rv_old_v) on the container. We're
+// going to manually remove the rv_old_v to simulate having a non-empty
+// container that appears to have never been rendered into before (as one
+// might encounter when rendering to document.body for the first time).
+assert($('h1').innerHTML == 'Hello') // has stuff
+delete container.rv_old_v; // will appear to never have been rendered into before
+add_render(['h2', ['i', 'Hello again']]);
+assert(!$('h1')); // should not exist anymore, render thinks its first time
+assert($('h2 i').innerHTML == 'Hello again');
+// test rendering a second time - if the DOM wasn't cleared correctly before,
+// we will CRASH because the DOM child numbering will be off for the update!
+add_render(['h2', ['i', 'Hello yet again']]);
+assert($('h2 i').innerHTML == 'Hello yet again');
+end_test();
+
+
 // =======================================================================
 // Tests for diffing
 

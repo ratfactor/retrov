@@ -11,9 +11,14 @@
         var new_v = make_obj(v);
         var old_v; // default is undefined
 
-        // Load any "old" vnode tree
         if(dom_container.rv_old_v){
+            // We've been here before, load old vnode tree
             old_v = dom_container.rv_old_v;
+        }
+        else
+        {
+            // First time here, clear this DOM element
+            dom_container.replaceChildren();
         }
 
         // Save the new one as next run's "old"
@@ -170,6 +175,12 @@
     }
 
     function update(dom_elem, old_v, new_v){
+        if(!dom_elem){
+            console.error('No DOM element here to update from Old:',
+                old_v,' to New:',new_v);
+            return;
+        }
+
         // Text nodes just have data
         if(new_v.t === '"'){
             dom_elem.data = new_v.text;
