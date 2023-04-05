@@ -251,7 +251,7 @@
             // This is a regular element vnode.
             var child_start = 1;
             var props = {};
-            if(typeof v[1] === 'object' && !Array.isArray(v[1])){
+            if(v[1] && typeof v[1] === 'object' && !Array.isArray(v[1])){
                 props = v[1];
                 if(typeof props['class'] !== 'undefined'){
                     props['className'] = props['class'];
