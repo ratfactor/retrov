@@ -340,34 +340,6 @@ end_test();
 
 
 // =======================================================================
-// Render regression tests (testing fixed bugs)
-
-start_test("Non-empty DOM container should be emptied on first run", ['h1', 'Hello'] );
-// This one is different. The above start_test() will insert some stuff
-// and RetroV will set the "old_v" (rv_old_v) on the container. We're
-// going to manually remove the rv_old_v to simulate having a non-empty
-// container that appears to have never been rendered into before (as one
-// might encounter when rendering to document.body for the first time).
-assert($('h1').innerHTML == 'Hello') // has stuff
-delete container.rv_old_v; // will appear to never have been rendered into before
-add_render(['h2', ['i', 'Hello again']]);
-assert(!$('h1')); // should not exist anymore, render thinks its first time
-assert($('h2 i').innerHTML == 'Hello again');
-// test rendering a second time - if the DOM wasn't cleared correctly before,
-// we will CRASH because the DOM child numbering will be off for the update!
-add_render(['h2', ['i', 'Hello yet again']]);
-assert($('h2 i').innerHTML == 'Hello yet again');
-end_test();
-
-start_test("Null in second position is NOT a properties object, LOL",
-    ['h1', null, 'Did not crash']);
-// This test will flat-out crash with the initial bug present. But the assert
-// makes certain that we did, in fact, render correctly (after not crashing).
-assert($('h1').innerHTML.includes('Did not crash'));
-end_test();
-
-
-// =======================================================================
 // Tests for diffing
 
 before = 'hello';
@@ -842,6 +814,49 @@ assert($('div > span.hi'));
 assert($('div > span.hi').innerHTML == 'Bye');
 add_render(['div']);
 assert(!$('div > span.hi')); // not
+end_test();
+
+
+
+// =======================================================================
+// Regression tests (testing fixed bugs)
+
+start_test("Non-empty DOM container should be emptied on first run", ['h1', 'Hello'] );
+// This one is different. The above start_test() will insert some stuff
+// and RetroV will set the "old_v" (rv_old_v) on the container. We're
+// going to manually remove the rv_old_v to simulate having a non-empty
+// container that appears to have never been rendered into before (as one
+// might encounter when rendering to document.body for the first time).
+assert($('h1').innerHTML == 'Hello') // has stuff
+delete container.rv_old_v; // will appear to never have been rendered into before
+add_render(['h2', ['i', 'Hello again']]);
+assert(!$('h1')); // should not exist anymore, render thinks its first time
+assert($('h2 i').innerHTML == 'Hello again');
+// test rendering a second time - if the DOM wasn't cleared correctly before,
+// we will CRASH because the DOM child numbering will be off for the update!
+add_render(['h2', ['i', 'Hello yet again']]);
+assert($('h2 i').innerHTML == 'Hello yet again');
+end_test();
+
+start_test("Null in second position is NOT a properties object, LOL",
+    ['h1', null, 'Did not crash']);
+// This test will flat-out crash with the initial bug present. But the assert
+// makes certain that we did, in fact, render correctly (after not crashing).
+assert($('h1').innerHTML.includes('Did not crash'));
+end_test();
+
+start_test("Updating null with same should not attempt to update properties",
+    ['h1', null, null]);
+assert($('h1'));
+add_render(['h1', null, null]);
+assert($('h1')); // just confirms we didn't crash :-)
+end_test();
+
+start_test("Updating undefined with same should not attempt to update properties",
+    ['h1', undefined, undefined]);
+assert($('h1'));
+add_render(['h1', undefined, undefined]);
+assert($('h1')); // just confirms we didn't crash :-)
 end_test();
 
 // =======================================================================

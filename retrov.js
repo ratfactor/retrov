@@ -89,6 +89,11 @@
             return;
         }
 
+        // null or undefined placeholder updated with same, nothing to do
+        if(!new_v.t || new_v.t === '!'){
+            return;
+        }
+
         // They must be the same type, update props and children
         update(child, old_v, new_v);
     }
