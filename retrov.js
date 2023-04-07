@@ -106,6 +106,10 @@
             return placeholder('false');
         }
 
+        if(v.t === '!'){
+            return placeholder('undefined');
+        }
+
         if(v.t === '<'){
             return create_html(v.html);
         }
@@ -246,6 +250,9 @@
         }
         if(v === false){
             return {t:false};
+        }
+        if(v === undefined){
+            return {t:'!'};
         }
         if(Array.isArray(v) && typeof v[0] === 'string'){
             // This is a regular element vnode.

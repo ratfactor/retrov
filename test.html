@@ -173,6 +173,12 @@ start_test("Null should make comment", null);
 assert(container.innerHTML.includes('RV:null-placeholder'));
 end_test();
 
+// The first time we render, undefined values do *not* indicate that
+// a child or bare array list has changed size. Make placeholder comment.
+start_test("Undefined should make comment", undefined);
+assert(container.innerHTML.includes('RV:undefined-placeholder'));
+end_test();
+
 start_test("Render a tag", ['div']);
 assert($('div'));
 end_test();
@@ -385,7 +391,29 @@ end_test();
 
 before = ['div.w',[['div.x'],null,['div.z']]];
 after  = ['div.w',[['div.x'],['div.y'],['div.z']]];
-start_test("Null placeholder in array child", before);
+start_test("Null placeholder in array", before);
+assert($('div.w > div.x'));
+assert($('div.w > div.z'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+end_test();
+
+before = ['div.w',['div.x'],undefined,['div.z']];
+after  = ['div.w',['div.x'],['div.y'],['div.z']];
+start_test("Undefined child placeholder", before);
+assert($('div.w > div.x'));
+assert($('div.w > div.z'));
+add_render(after);
+assert($('div.w > div.x'));
+assert($('div.w > div.y'));
+assert($('div.w > div.z'));
+end_test();
+
+before = ['div.w',[['div.x'],undefined,['div.z']]];
+after  = ['div.w',[['div.x'],['div.y'],['div.z']]];
+start_test("Undefined placeholder in array", before);
 assert($('div.w > div.x'));
 assert($('div.w > div.z'));
 add_render(after);
