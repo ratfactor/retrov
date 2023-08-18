@@ -70,7 +70,7 @@
                 return;
             }
 
-            var old_siblings = (old_v && old_v.t === '[' ? old_v.c : []);
+            var old_siblings = (old_v && old_v.c ? old_v.c : []);
 
             resolve_siblings(dom_container, old_siblings, new_v.c);
 

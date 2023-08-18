@@ -859,6 +859,15 @@ add_render(['h1', undefined, undefined]);
 assert($('h1')); // just confirms we didn't crash :-)
 end_test();
 
+start_test("Replacing tag with list should replace, not 'append'",
+    ['h2.info', 'start']);
+add_render(['div', 'foo']);
+add_render([ ['h2', 'bar'] ]);
+assert($('h2').innerHTML == 'bar');  // should exist
+assert(!$('div')); // original tag must NOT exist
+end_test();
+
+
 // =======================================================================
 // All done, print simple count summary
 
