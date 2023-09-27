@@ -1,5 +1,8 @@
 <img src="./retrov.svg" alt="RetroV 1970s colors svg logo">
 
+**MOVED!** Hello, I am moving my repos to http://ratfactor.com/repos/
+and setting them to read-only ("archived") on GitHub. Thank you, *-Dave*
+
 # RetroV
 
 RetroV (pronounced "retro vee") is a virtual DOM (VDOM) rendering library.
